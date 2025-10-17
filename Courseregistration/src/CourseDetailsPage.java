@@ -9,7 +9,10 @@ public class CourseDetailsPage extends JPanel {
     private MainFrame main;
     private String courseId;
     private String studentAdmissionNo;
-    private JButton btnRegister; 
+    private JButton btnRegister;
+    // Define the Green color used for 'Already Registered'
+    private final Color SUCCESS_GREEN = new Color(46, 204, 113);
+    private final Color PRIMARY_BLUE = new Color(52, 152, 219);
 
     public CourseDetailsPage(MainFrame main, String courseId, String studentAdmissionNo) {
         this.main = main;
@@ -20,7 +23,8 @@ public class CourseDetailsPage extends JPanel {
     }
 
     private void initUI() {
-        Color primary = new Color(52, 152, 219);
+        // Use defined color constant
+        Color primary = PRIMARY_BLUE;
 
         // Header
         JPanel header = new JPanel(new BorderLayout());
@@ -40,13 +44,12 @@ public class CourseDetailsPage extends JPanel {
         content.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
         content.setBackground(new Color(245, 247, 250)); // Light background for contrast
 
-        // Poster Label setup (Note: We remove the fixed sizesetPreferredSize here
-        // so the BoxLayout respects the image's dimensions inside the scroll pane)
+        // Poster Label setup
         JLabel lblPoster = new JLabel();
         lblPoster.setHorizontalAlignment(SwingConstants.CENTER);
         lblPoster.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblPoster.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY)); // Border helps visualize the image area
-        
+        lblPoster.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+
         JLabel lblName = new JLabel();
         lblName.setFont(new Font("Segoe UI", Font.BOLD, 24)); // Larger font for name
         lblName.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -62,7 +65,7 @@ public class CourseDetailsPage extends JPanel {
         JLabel lblMode = new JLabel();
         lblMode.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         lblMode.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
+
         // Description Area
         JTextArea txtDescription = new JTextArea(10, 40); // Initial size hint for description
         txtDescription.setLineWrap(true);
@@ -70,7 +73,7 @@ public class CourseDetailsPage extends JPanel {
         txtDescription.setEditable(false);
         txtDescription.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         txtDescription.setBorder(BorderFactory.createTitledBorder("Description"));
-        
+
         // --- Add components to content panel ---
         content.add(lblPoster);
         content.add(Box.createVerticalStrut(20));
@@ -82,10 +85,10 @@ public class CourseDetailsPage extends JPanel {
         content.add(Box.createVerticalStrut(20));
         content.add(new JScrollPane(txtDescription));
 
-        // 🔴 FIX: Make the page scrollable by wrapping content in JScrollPane
+        // Make the page scrollable
         JScrollPane mainScrollPane = new JScrollPane(content);
-        mainScrollPane.getVerticalScrollBar().setUnitIncrement(16); // Smooth scrolling
-        mainScrollPane.setBorder(BorderFactory.createEmptyBorder()); // Remove default border
+        mainScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        mainScrollPane.setBorder(BorderFactory.createEmptyBorder());
         add(mainScrollPane, BorderLayout.CENTER);
 
         // Footer with Back and Register
@@ -94,6 +97,7 @@ public class CourseDetailsPage extends JPanel {
 
         JButton btnBack = new JButton("Back");
         styleButton(btnBack, new Color(231, 76, 60), new Color(192, 57, 43));
+        // Use main.showPage("availablecourses") to show the main page
         btnBack.addActionListener(e -> main.showPage("availablecourses"));
 
         btnRegister = new JButton("Register");
@@ -105,8 +109,9 @@ public class CourseDetailsPage extends JPanel {
 
         add(footer, BorderLayout.SOUTH);
 
+        // Load data on page initialization
         loadCourseDetails(lblPoster, lblName, lblDate, lblTime, lblMode, txtDescription);
-        checkIfAlreadyRegistered(); 
+        checkIfAlreadyRegistered();
     }
 
     private void loadCourseDetails(JLabel lblPoster, JLabel lblName, JLabel lblDate,
@@ -120,17 +125,17 @@ public class CourseDetailsPage extends JPanel {
 
                 java.util.Date date = rs.getDate("course_date");
                 java.sql.Time time = rs.getTime("course_time");
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-                SimpleDateFormat tf = new SimpleDateFormat("HH:mm");
-                lblDate.setText("📅 Date: " + df.format(date));
-                lblTime.setText("🕒 Time: " + tf.format(time));
+                SimpleDateFormat df = new SimpleDateFormat("MMM dd, yyyy"); // Match AvailableCoursesPage format
+                SimpleDateFormat tf = new SimpleDateFormat("hh:mm a");       // Match AvailableCoursesPage format
+                lblDate.setText(" Date: " + df.format(date));
+                lblTime.setText(" Time: " + tf.format(time));
                 lblMode.setText("Mode: " + rs.getString("mode"));
 
                 txtDescription.setText(rs.getString("description"));
 
                 String poster = rs.getString("poster");
-                
-                // 🔴 FIX: Poster loading and scaling for full view
+
+                // Poster loading and scaling logic
                 if (poster != null && !poster.equals("No file chosen")) {
                     File posterFile = new File("posters/" + poster);
                     if (posterFile.exists()) {
@@ -139,38 +144,35 @@ public class CourseDetailsPage extends JPanel {
 
                         int originalWidth = icon.getIconWidth();
                         int originalHeight = icon.getIconHeight();
-                        
-                        // Set a practical max size for display inside the scroll pane
+
                         int maxWidth = 700;
                         int maxHeight = 500;
                         int newWidth = originalWidth;
                         int newHeight = originalHeight;
 
-                        // Only scale down if the image is too large for the screen/panel
                         if (originalWidth > maxWidth || originalHeight > maxHeight) {
                             double widthRatio = (double) maxWidth / originalWidth;
                             double heightRatio = (double) maxHeight / originalHeight;
-                            double ratio = Math.min(widthRatio, heightRatio); // Maintain aspect ratio
+                            double ratio = Math.min(widthRatio, heightRatio);
 
                             newWidth = (int) (originalWidth * ratio);
                             newHeight = (int) (originalHeight * ratio);
-                            
+
                             Image scaledImg = img.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
                             lblPoster.setIcon(new ImageIcon(scaledImg));
                         } else {
-                            // Image fits, show full quality
                             lblPoster.setIcon(icon);
                         }
-                        
-                        // Adjust the label size to fit the displayed image
+
                         lblPoster.setPreferredSize(new Dimension(newWidth, newHeight));
-                        
+
                     } else {
                         lblPoster.setText("Poster File Not Found");
+                        lblPoster.setPreferredSize(new Dimension(400, 100));
                     }
                 } else {
                     lblPoster.setText("No Poster Available");
-                    lblPoster.setPreferredSize(new Dimension(400, 100)); // Default size when no image
+                    lblPoster.setPreferredSize(new Dimension(400, 100));
                 }
 
             }
@@ -179,38 +181,63 @@ public class CourseDetailsPage extends JPanel {
         }
     }
 
+    /**
+     * Checks the course_registrations table for an ACTIVE (is_cancelled = FALSE) registration.
+     */
     private void checkIfAlreadyRegistered() {
+        String sql = "SELECT * FROM course_registrations WHERE student_admission_no = ? AND course_id = ? AND is_cancelled = FALSE";
+
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pst = conn.prepareStatement(
-                     "SELECT * FROM registrations WHERE admission_no = ? AND course_id = ?")) {
+             PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setString(1, studentAdmissionNo);
             pst.setString(2, courseId);
             ResultSet rs = pst.executeQuery();
+
             if (rs.next()) {
-                // Student already registered 
+                // Student already actively registered
                 btnRegister.setEnabled(false);
                 btnRegister.setText("Already Registered ✅");
-                btnRegister.setBackground(new Color(46, 204, 113)); // Green
+                btnRegister.setBackground(SUCCESS_GREEN);
                 btnRegister.setCursor(Cursor.getDefaultCursor());
+            } else {
+                // Not registered or registration was cancelled
+                btnRegister.setEnabled(true);
+                btnRegister.setText("Register");
+                btnRegister.setBackground(PRIMARY_BLUE);
+                btnRegister.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error checking registration: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Error checking registration status: " + ex.getMessage());
         }
     }
 
+    /**
+     * Inserts a new active registration record into the course_registrations table.
+     */
     private void registerForCourse() {
+        String sql = "INSERT INTO course_registrations (student_admission_no, course_id, is_cancelled) VALUES (?, ?, FALSE)";
+
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pst = conn.prepareStatement(
-                     "INSERT INTO registrations (admission_no, course_id) VALUES (?, ?)")) {
+             PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setString(1, studentAdmissionNo);
             pst.setString(2, courseId);
             pst.executeUpdate();
 
-            JOptionPane.showMessageDialog(this, "You have successfully registered for this course!");
-            checkIfAlreadyRegistered(); // Update button state immediately
+            JOptionPane.showMessageDialog(this, "You have successfully registered for this course! 🎉");
+            
+            // Update the UI and refresh the AvailableCoursesPage
+            checkIfAlreadyRegistered(); 
 
+            // THIS IS THE CRITICAL BLOCK that requires the method in MainFrame.java
+            if (main.getAvailableCoursesPage() != null) {
+                main.getAvailableCoursesPage().refreshCourses();
+            }
+
+        } catch (SQLIntegrityConstraintViolationException ex) {
+            JOptionPane.showMessageDialog(this, "You are already registered for this course (or a previous cancellation exists).", "Registration Error", JOptionPane.ERROR_MESSAGE);
+            checkIfAlreadyRegistered();
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error during registration: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Error during registration: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -221,13 +248,26 @@ public class CourseDetailsPage extends JPanel {
         b.setFocusPainted(false);
         b.setBorderPainted(false);
         b.setOpaque(true);
+        b.setPreferredSize(new Dimension(150, 40)); // Consistent size for action buttons
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         b.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) { 
+            public void mouseEntered(MouseEvent e) {
+                // Do not apply hover to the 'Already Registered' button
                 if (b.isEnabled()) b.setBackground(hover);
             }
-            public void mouseExited(MouseEvent e) { 
-                if (b.isEnabled() && !b.getText().equals("Already Registered ✅")) b.setBackground(bg);
+            public void mouseExited(MouseEvent e) {
+                // Restore original color, but keep the green if already registered
+                if (b.isEnabled()) {
+                    if (b.getText().equals("Already Registered ✅")) {
+                        b.setBackground(SUCCESS_GREEN);
+                    } else {
+                        b.setBackground(bg);
+                    }
+                } else if (b.getText().equals("Already Registered ✅")) {
+                     b.setBackground(SUCCESS_GREEN);
+                } else {
+                    b.setBackground(bg);
+                }
             }
         });
     }

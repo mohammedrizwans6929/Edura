@@ -8,7 +8,6 @@ import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class AddCoursePage extends JPanel {
@@ -43,7 +42,7 @@ public class AddCoursePage extends JPanel {
 
         add(header, BorderLayout.NORTH);
 
-        // ===== Form Panel =====
+        // ===== Form Panel (GridBagLayout setup remains the same) =====
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         GridBagConstraints gbc = new GridBagConstraints();
@@ -150,9 +149,15 @@ public class AddCoursePage extends JPanel {
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
             String fileName = selectedFile.getName();
-            File dest = new File("posters/" + fileName);
+            // Ensure the 'posters' directory exists
+            File posterDir = new File("posters");
+            if (!posterDir.exists()) {
+                posterDir.mkdirs();
+            }
+            File dest = new File(posterDir, fileName);
 
             try {
+                // Copy the file to the local 'posters' directory
                 Files.copy(selectedFile.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 txtPoster.setText(fileName);
 
@@ -179,9 +184,20 @@ public class AddCoursePage extends JPanel {
             return;
         }
 
+        // Add validation to ensure the date is not in the past (optional but good practice)
+        if (date.before(new Date())) {
+             int confirm = JOptionPane.showConfirmDialog(this,
+                    "The selected date is in the past. Do you still want to save this course?",
+                    "Warning: Past Date", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+             if (confirm != JOptionPane.YES_OPTION) {
+                 return;
+             }
+        }
+
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pst = conn.prepareStatement(
-                     "INSERT INTO courses (course_id, course_name, description, course_date, course_time, mode, poster) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+                     "INSERT INTO courses (course_id, course_name, description, course_date, course_time, mode, poster, is_deleted) VALUES (?, ?, ?, ?, ?, ?, ?, FALSE)")) {
+            // is_deleted is explicitly set to FALSE for a new course
 
             pst.setString(1, courseId);
             pst.setString(2, courseName);
@@ -195,10 +211,16 @@ public class AddCoursePage extends JPanel {
             JOptionPane.showMessageDialog(this, "Course added successfully!");
             clearFields();
 
-            // Refresh Available Courses Page if open
+            // Refresh Available Courses Page (Student View)
             AvailableCoursesPage acp = (AvailableCoursesPage) main.getPage("availablecourses");
             if (acp != null) {
                 acp.refreshCourses();
+            }
+
+            // 🔑 FIX: Refresh Manage Courses Page (Admin View)
+            ManageCoursesPage mcp = (ManageCoursesPage) main.getPage("managecourses");
+            if (mcp != null) {
+                mcp.refresh(); // Call the public refresh method
             }
 
         } catch (SQLException ex) {

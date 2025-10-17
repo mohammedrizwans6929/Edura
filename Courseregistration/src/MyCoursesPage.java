@@ -5,8 +5,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Calendar;
-import java.util.concurrent.TimeUnit;
-import java.io.File; 
+import java.io.File;
 
 public class MyCoursesPage extends JPanel {
     private MainFrame main;
@@ -17,17 +16,18 @@ public class MyCoursesPage extends JPanel {
     
     private Color primary = new Color(52, 152, 219);
     private Color danger = new Color(231, 76, 60);
+    private final long ONE_HOUR_MS = 60 * 60 * 1000; // Used to define when a course is "finished"
 
     public MyCoursesPage(MainFrame main, String studentAdmissionNo) {
         this.main = main;
         this.studentAdmissionNo = studentAdmissionNo;
         setLayout(new BorderLayout());
         initUI();
-        loadCourses();
+        // loadCourses() is called here implicitly during instantiation
     }
 
     private void initUI() {
-        // ===== Header =====
+        // (Header setup remains the same)
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(primary);
         header.setPreferredSize(new Dimension(800, 60));
@@ -37,26 +37,22 @@ public class MyCoursesPage extends JPanel {
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
         lblTitle.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
         header.add(lblTitle, BorderLayout.WEST);
-
         add(header, BorderLayout.NORTH);
 
         // ===== Tabs and Scrollable Content =====
         JTabbedPane tabs = new JTabbedPane();
         tabs.setFont(new Font("Segoe UI", Font.BOLD, 14));
         
-        // --- Upcoming Courses Panel ---
         upcomingCoursesPanel = createCardContainerPanel();
         JScrollPane upcomingScroll = new JScrollPane(upcomingCoursesPanel);
         upcomingScroll.getVerticalScrollBar().setUnitIncrement(16);
-        tabs.addTab("🗓️ Upcoming Courses", upcomingScroll);
+        tabs.addTab(" Upcoming Courses", upcomingScroll);
 
-        // --- Completed Courses Panel ---
         completedCoursesPanel = createCardContainerPanel();
         JScrollPane completedScroll = new JScrollPane(completedCoursesPanel);
         completedScroll.getVerticalScrollBar().setUnitIncrement(16);
-        tabs.addTab("✅ Completed Courses", completedScroll);
+        tabs.addTab(" Completed Courses", completedScroll);
 
-        // Add the tabs panel to the main frame
         add(tabs, BorderLayout.CENTER);
 
         // ===== Back Button at Bottom =====
@@ -68,7 +64,6 @@ public class MyCoursesPage extends JPanel {
         add(bottomPanel, BorderLayout.SOUTH);
     }
     
-    /** Creates a JPanel configured to hold stacked course cards. */
     private JPanel createCardContainerPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -83,18 +78,20 @@ public class MyCoursesPage extends JPanel {
         upcomingCoursesPanel.removeAll();
         completedCoursesPanel.removeAll();
 
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pst = conn.prepareStatement(
-                     "SELECT c.course_id, c.course_name, c.course_date, c.course_time, c.mode, c.poster " +
+        // 🔑 CORRECTED SQL: Uses 'course_registrations' and filters by 'is_cancelled = FALSE'
+        String sql = "SELECT c.course_id, c.course_name, c.course_date, c.course_time, c.mode, c.poster " +
                      "FROM courses c " +
-                     "JOIN registrations r ON c.course_id = r.course_id " +
-                     "WHERE r.admission_no = ? AND c.is_deleted = FALSE " + 
-                     "ORDER BY c.course_date ASC")) {
+                     "JOIN course_registrations cr ON c.course_id = cr.course_id " +
+                     "WHERE cr.student_admission_no = ? AND cr.is_cancelled = FALSE AND c.is_deleted = FALSE " + 
+                     "ORDER BY c.course_date ASC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pst = conn.prepareStatement(sql)) {
 
             pst.setString(1, studentAdmissionNo);
             ResultSet rs = pst.executeQuery();
             
-            Date today = new Date();
+            Date currentTime = new Date();
             
             boolean foundUpcoming = false;
             boolean foundCompleted = false;
@@ -107,18 +104,22 @@ public class MyCoursesPage extends JPanel {
                 String mode = rs.getString("mode");
                 String poster = rs.getString("poster");
                 
-                // Combine date and time for determining Upcoming/Completed status
+                // Combine date and time to get the exact course end time (estimated 1 hour duration)
                 Calendar courseCal = Calendar.getInstance();
                 courseCal.setTime(courseDate);
                 courseCal.set(Calendar.HOUR_OF_DAY, courseTime.getHours());
                 courseCal.set(Calendar.MINUTE, courseTime.getMinutes());
-                Date courseDateTime = courseCal.getTime();
+                
+                // Use the start time for sorting, but for determining "Completed," 
+                // check if the current time is past the course time + 1 hour buffer.
+                long courseEndTimestamp = courseCal.getTimeInMillis() + ONE_HOUR_MS;
+                
+                boolean isUpcoming = currentTime.getTime() < courseEndTimestamp;
 
-                boolean isUpcoming = courseDateTime.after(today);
-
-                // Determine final status for completed courses
-                String finalStatus = "COMPLETED"; // Default status
+                // Determine final status only for completed (past) courses
+                String finalStatus = "N/A";
                 if (!isUpcoming) {
+                    // Check attendance status only if the course has definitely finished
                     finalStatus = getCourseAttendanceStatus(conn, courseId, studentAdmissionNo);
                 }
 
@@ -150,6 +151,8 @@ public class MyCoursesPage extends JPanel {
         upcomingCoursesPanel.repaint();
         completedCoursesPanel.repaint();
     }
+    
+    // (getCourseAttendanceStatus, addNoCourseMessage, createCourseCard, and styleButton methods remain the same)
     
     /**
      * Checks attendance for a finished course to determine if status is COMPLETED or ABSENT.
@@ -236,7 +239,7 @@ public class MyCoursesPage extends JPanel {
             lblStatus = new JLabel("UPCOMING");
             lblStatus.setForeground(primary);
         } else {
-            // 🔴 FIX: Set status based on finalStatus (ABSENT or COMPLETED)
+            // Set status based on finalStatus (ABSENT or COMPLETED)
             lblStatus = new JLabel(finalStatus);
             if (finalStatus.equals("ABSENT")) {
                  lblStatus.setForeground(danger); // Red for absent
@@ -254,11 +257,10 @@ public class MyCoursesPage extends JPanel {
         
         card.add(statusPanel, BorderLayout.EAST);
         
-        // 🎯 Add mouse listener to navigate to the details page
+        // Add mouse listener to navigate to the registered details page
         card.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                // Navigate to the registered details page where cancellation is possible
                 main.showCourseRegisteredDetails(courseId, studentAdmissionNo);
             }
         });

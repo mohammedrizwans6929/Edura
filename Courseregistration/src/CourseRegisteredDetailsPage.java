@@ -112,15 +112,17 @@ public class CourseRegisteredDetailsPage extends JPanel {
     // --- Data Loading and Status Check ---
 
     private void loadCourseDetails() {
-        JLabel lblPoster = (JLabel) ((JPanel)((JScrollPane)getComponent(1)).getViewport().getView()).getComponent(0);
-        JLabel lblName = (JLabel) ((JPanel)((JScrollPane)getComponent(1)).getViewport().getView()).getComponent(2);
-        JLabel lblDate = (JLabel) ((JPanel)((JScrollPane)getComponent(1)).getViewport().getView()).getComponent(4);
-        JLabel lblTime = (JLabel) ((JPanel)((JScrollPane)getComponent(1)).getViewport().getView()).getComponent(5);
-        JLabel lblMode = (JLabel) ((JPanel)((JScrollPane)getComponent(1)).getViewport().getView()).getComponent(6);
-        JTextArea txtDescription = (JTextArea) ((JScrollPane)((JPanel)((JScrollPane)getComponent(1)).getViewport().getView()).getComponent(8)).getViewport().getView();
+        // Retrieve UI components safely 
+        JPanel contentPanel = (JPanel)((JScrollPane)getComponent(1)).getViewport().getView();
+        JLabel lblPoster = (JLabel) contentPanel.getComponent(0);
+        JLabel lblName = (JLabel) contentPanel.getComponent(2);
+        JLabel lblDate = (JLabel) contentPanel.getComponent(4);
+        JLabel lblTime = (JLabel) contentPanel.getComponent(5);
+        JLabel lblMode = (JLabel) contentPanel.getComponent(6);
+        JTextArea txtDescription = (JTextArea) ((JScrollPane)contentPanel.getComponent(8)).getViewport().getView();
         
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pst = conn.prepareStatement("SELECT * FROM courses WHERE course_id = ?")) {
+              PreparedStatement pst = conn.prepareStatement("SELECT * FROM courses WHERE course_id = ?")) {
             pst.setString(1, courseId);
             ResultSet rs = pst.executeQuery();
             
@@ -131,11 +133,9 @@ public class CourseRegisteredDetailsPage extends JPanel {
                 Date date = rs.getDate("course_date");
                 Time time = rs.getTime("course_time");
                 
-                // Combine date and time for cancellation check
+                // Combine date and time using robust timestamp merging
                 Calendar courseCal = Calendar.getInstance();
-                courseCal.setTime(date);
-                courseCal.set(Calendar.HOUR_OF_DAY, time.getHours());
-                courseCal.set(Calendar.MINUTE, time.getMinutes());
+                courseCal.setTimeInMillis(date.getTime() + time.getTime());
                 this.courseDateTime = courseCal.getTime(); // Store combined date/time
 
                 SimpleDateFormat df = new SimpleDateFormat("MMM dd, yyyy");
@@ -228,13 +228,16 @@ public class CourseRegisteredDetailsPage extends JPanel {
 
     private void cancelRegistration() {
         int confirm = JOptionPane.showConfirmDialog(this,
-                "Are you sure you want to cancel registration for " + this.courseName + "? This action cannot be undone.",
+                "Are you sure you want to cancel registration for " + this.courseName + "? This action is permanent and makes the slot available to others.",
                 "Confirm Cancellation", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         
         if (confirm == JOptionPane.YES_OPTION) {
             try (Connection conn = DBConnection.getConnection();
+                 // 🔑 CRITICAL FIX: Use UPDATE to change status, targeting the ACTIVE record.
+                 // This ensures we do not violate the unique key constraint.
                  PreparedStatement pst = conn.prepareStatement(
-                     "DELETE FROM registrations WHERE admission_no = ? AND course_id = ?")) {
+                     "UPDATE course_registrations SET is_cancelled = TRUE, cancellation_date = CURRENT_TIMESTAMP " +
+                     "WHERE student_admission_no = ? AND course_id = ? AND is_cancelled = FALSE")) {
                 
                 pst.setString(1, studentAdmissionNo);
                 pst.setString(2, courseId);
@@ -242,18 +245,24 @@ public class CourseRegisteredDetailsPage extends JPanel {
                 if (pst.executeUpdate() > 0) {
                     JOptionPane.showMessageDialog(this, "Registration successfully cancelled.", "Success", JOptionPane.INFORMATION_MESSAGE);
                     
-                    // Disable button and update text after successful cancellation
+                    // Update button state immediately
                     btnCancelRegistration.setEnabled(false);
                     btnCancelRegistration.setText("Cancelled");
                     btnCancelRegistration.setBackground(Color.DARK_GRAY);
 
-                    // Go back to MyCoursesPage and refresh the list
-                    main.showMyCoursesPage(); 
+                    // Refresh both student pages
+                    main.showMyCoursesPage();
+                    if (main.getAvailableCoursesPage() != null) {
+                        main.getAvailableCoursesPage().refreshCourses();
+                    }
                 } else {
-                    JOptionPane.showMessageDialog(this, "Error: Registration record not found.", "Error", JOptionPane.ERROR_MESSAGE);
+                    // This error path might still be hit if the DB failed to find the active record.
+                    JOptionPane.showMessageDialog(this, "Error: Active registration record not found. It may be already cancelled or the DB state is inconsistent.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (SQLException ex) {
+                // The DB error during cancellation (Duplicate entry) is caught here.
                 JOptionPane.showMessageDialog(this, "Database error during cancellation: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
             }
         }
     }

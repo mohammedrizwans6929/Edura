@@ -15,7 +15,7 @@ public class ViewStudentsByCoursePage extends JPanel {
     private JButton btnSearchCourse;
     private JLabel lblSelectedCourseId; 
     
-    private String currentCourseId = null; // Stores the ID of the course whose students are displayed
+    private String currentCourseId = null; 
 
     public ViewStudentsByCoursePage(MainFrame main) {
         this.main = main;
@@ -74,7 +74,7 @@ public class ViewStudentsByCoursePage extends JPanel {
         // --- Table Setup ---
         String[] columns = {"Admission No", "Full Name", "Email", "Phone", "Semester", "Batch", "Department", "Class No"};
         
-        // 🔴 FIX: Custom model to make cells NON-EDITABLE
+        // Custom model to make cells NON-EDITABLE
         model = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -108,7 +108,12 @@ public class ViewStudentsByCoursePage extends JPanel {
         add(btnPanel, BorderLayout.SOUTH);
 
         // --- Event Handlers ---
-        btnBack.addActionListener(e -> main.showPage("admin"));
+        // 🔑 FIX: Call clearFields() when exiting the page
+        btnBack.addActionListener(e -> {
+            clearFields(); 
+            main.showPage("admin");
+        });
+        
         btnPrint.addActionListener(e -> printTable());
         
         // Action to trigger course search and selection
@@ -117,6 +122,16 @@ public class ViewStudentsByCoursePage extends JPanel {
         txtCourseSearch.addActionListener(searchAction); 
     }
 
+    /**
+     * Clears search field and resets the table view.
+     */
+    public void clearFields() {
+        txtCourseSearch.setText("");
+        lblSelectedCourseId.setText("Selected Course: None");
+        currentCourseId = null;
+        model.setRowCount(0);
+    }
+    
     // --- Data Loading Logic ---
 
     /**
@@ -171,15 +186,17 @@ public class ViewStudentsByCoursePage extends JPanel {
         }
 
         try (Connection conn = DBConnection.getConnection();
+             // Join students (s) with course_registrations (cr)
              PreparedStatement pst = conn.prepareStatement(
                  "SELECT s.admission_no, s.full_name, s.email, s.phone, s.semester, s.batch, s.dept, s.class_no " +
                  "FROM students s " +
-                 "JOIN registrations r ON s.admission_no = r.admission_no " +
-                 "WHERE r.course_id = ? " +
+                 "JOIN course_registrations cr ON s.admission_no = cr.student_admission_no " +
+                 "WHERE cr.course_id = ? AND cr.is_cancelled = FALSE " + // Filter for active and specific course
                  "ORDER BY s.full_name")) {
 
             pst.setString(1, currentCourseId);
             ResultSet rs = pst.executeQuery();
+            int studentCount = 0;
 
             while (rs.next()) {
                 model.addRow(new Object[]{
@@ -192,10 +209,20 @@ public class ViewStudentsByCoursePage extends JPanel {
                     rs.getString("dept"),
                     rs.getString("class_no")
                 });
+                studentCount++;
+            }
+            
+            // Update the status label with the count
+            String currentLabel = lblSelectedCourseId.getText();
+            lblSelectedCourseId.setText(currentLabel.replaceAll("\\s*\\([^)]*\\)$", "") + " (" + studentCount + " Students)");
+            
+            if (studentCount == 0) {
+                 JOptionPane.showMessageDialog(this, "No active students are currently registered for this course.", "No Registrations", JOptionPane.INFORMATION_MESSAGE);
             }
 
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error loading student details. Please verify your 'students' table columns: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error loading student details. Please verify your table schemas: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
     }
 
@@ -207,7 +234,7 @@ public class ViewStudentsByCoursePage extends JPanel {
             return;
         }
         if (currentCourseId == null) {
-             JOptionPane.showMessageDialog(this, "No course is currently selected.", "Print Error", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "No course is currently selected.", "Print Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
 

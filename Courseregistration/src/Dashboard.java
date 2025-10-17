@@ -52,10 +52,10 @@ public class Dashboard extends JPanel {
         centerPanel.setBorder(BorderFactory.createEmptyBorder(40, 250, 40, 250)); // Adjusted padding
         centerPanel.setBackground(Color.WHITE);
 
-        JButton btnProfile = new JButton("👤 View Profile");
-        JButton btnMyCourses = new JButton("📚 My Courses");
-        JButton btnAvailableCourses = new JButton("📝 Available Courses");
-        JButton btnCertifications = new JButton("📄 Certifications");
+        JButton btnProfile = new JButton(" View Profile");
+        JButton btnMyCourses = new JButton(" My Courses");
+        JButton btnAvailableCourses = new JButton(" Available Courses");
+        JButton btnCertifications = new JButton(" Certifications");
         // JButton btnTransactions = new JButton("💳 Transactions"); 🔴 REMOVED
 
         // 🔴 FIX: Use the smaller styling method for all nav buttons

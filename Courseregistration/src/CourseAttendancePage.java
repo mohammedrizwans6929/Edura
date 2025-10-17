@@ -6,6 +6,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
+import java.util.concurrent.TimeUnit; 
 
 public class CourseAttendancePage extends JPanel {
     private MainFrame main;
@@ -17,7 +18,7 @@ public class CourseAttendancePage extends JPanel {
     private String currentCourseId = null;
 
     private Color primary = new Color(52, 152, 219);
-    private Color primaryDark = new Color(41, 128, 185); // 🔴 FIX: Restored variable declaration
+    private Color primaryDark = new Color(41, 128, 185);
     private Color success = new Color(46, 204, 113);
     private Color error = new Color(231, 76, 60);
 
@@ -98,7 +99,7 @@ public class CourseAttendancePage extends JPanel {
         bottomPanel.setBackground(getBackground());
         
         lblStatus = new JLabel("Please load a course to record attendance.");
-        lblStatus.setForeground(primaryDark); // Uses the now-defined variable
+        lblStatus.setForeground(primaryDark);
         
         JButton btnSave = new JButton("Save Attendance");
         styleButton(btnSave, success, new Color(39, 174, 96), new Dimension(160, 40));
@@ -106,12 +107,27 @@ public class CourseAttendancePage extends JPanel {
         
         JButton btnBack = new JButton("Back");
         styleButton(btnBack, error, new Color(192, 57, 43), new Dimension(100, 40));
-        btnBack.addActionListener(e -> main.showPage("admin"));
+        
+        // 🔑 FIX: Call clearFields() when exiting the page
+        btnBack.addActionListener(e -> {
+            clearFields();
+            main.showPage("admin");
+        });
 
         bottomPanel.add(lblStatus);
         bottomPanel.add(btnSave);
         bottomPanel.add(btnBack);
         add(bottomPanel, BorderLayout.SOUTH);
+    }
+    
+    /**
+     * Clears search field and resets the table and status.
+     */
+    public void clearFields() {
+        txtCourseSearch.setText("");
+        model.setRowCount(0);
+        currentCourseId = null;
+        lblStatus.setText("Please load a course to record attendance.");
     }
     
     // --- Data Handlers ---
@@ -152,11 +168,15 @@ public class CourseAttendancePage extends JPanel {
     private void loadStudentsForAttendance() {
         if (currentCourseId == null) return;
         
+        model.setRowCount(0); // Clear table data
+
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pst = conn.prepareStatement(
-                 "SELECT s.admission_no, s.full_name FROM students s " +
-                 "JOIN registrations r ON s.admission_no = r.admission_no " +
-                 "WHERE r.course_id = ? ORDER BY s.full_name")) {
+              // Join students (s) with course_registrations (cr) and filter by is_cancelled = FALSE
+              PreparedStatement pst = conn.prepareStatement(
+                  "SELECT s.admission_no, s.full_name FROM students s " +
+                  "JOIN course_registrations cr ON s.admission_no = cr.student_admission_no " +
+                  "WHERE cr.course_id = ? AND cr.is_cancelled = FALSE " + 
+                  "ORDER BY s.full_name")) {
 
             pst.setString(1, currentCourseId);
             ResultSet rs = pst.executeQuery();
@@ -176,10 +196,10 @@ public class CourseAttendancePage extends JPanel {
                     existingStatus.isEmpty() ? "Present" : existingStatus
                 });
             }
-            lblStatus.setText("Loaded " + model.getRowCount() + " students. Default status is Present.");
+            lblStatus.setText("Loaded " + model.getRowCount() + " students. Ready to save attendance.");
 
         } catch (SQLException ex) {
-            lblStatus.setText("Error loading student list.");
+            lblStatus.setText("Error loading student list. Check DB connection/schema.");
             ex.printStackTrace();
         }
     }
@@ -192,8 +212,8 @@ public class CourseAttendancePage extends JPanel {
         String dateString = new SimpleDateFormat("yyyy-MM-dd").format(attendanceDate);
         
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pst = conn.prepareStatement(
-                 "SELECT status FROM attendance WHERE course_id = ? AND admission_no = ? AND date_recorded = ?")) {
+              PreparedStatement pst = conn.prepareStatement(
+                  "SELECT status FROM attendance WHERE course_id = ? AND admission_no = ? AND date_recorded = ?")) {
             
             pst.setString(1, courseId);
             pst.setString(2, admissionNo);
