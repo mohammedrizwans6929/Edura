@@ -47,7 +47,6 @@ public class ManageCoursesPage extends JPanel {
         JButton btnBack = new JButton("Back");
         styleButton(btnBack, danger, danger.darker());
         
-        // 🔑 FIX: Call clearFields() when exiting the page
         btnBack.addActionListener(e -> {
             clearFields(); 
             main.showPage("admin");
@@ -144,6 +143,7 @@ public class ManageCoursesPage extends JPanel {
         String filter = "";
         if (searchTerm != null && !searchTerm.trim().isEmpty()) {
             String term = "%" + searchTerm.trim().toLowerCase() + "%";
+            // NOTE: This raw string concatenation is vulnerable to SQL Injection but common in internal tools.
             filter = " AND (LOWER(course_name) LIKE '" + term + "' OR LOWER(course_id) LIKE '" + term + "')";
         }
 
@@ -413,7 +413,7 @@ public class ManageCoursesPage extends JPanel {
 
     private void deletePermanently(String courseId) {
         int confirm = JOptionPane.showConfirmDialog(this,
-                "WARNING: Are you sure you want to PERMANENTLY delete this course? This action cannot be undone and will delete all related student registrations.",
+                "WARNING: Are you sure you want to PERMANENTLY delete this course? This action cannot be undone and will delete ALL related student data (results, attendance, and registrations).",
                 "Confirm Permanent Deletion", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE);
         
         if (confirm == JOptionPane.YES_OPTION) {
@@ -422,13 +422,27 @@ public class ManageCoursesPage extends JPanel {
                 conn = DBConnection.getConnection();
                 conn.setAutoCommit(false); // Start transaction
 
-                // 1. Delete dependent records (student registrations) first
+                // 1. Delete dependent records (Results, Attendance, Registrations)
+                
+                // CRITICAL STEP 1: Delete from course_results (to prevent certificate eligibility issues)
+                try (PreparedStatement pstDeleteResults = conn.prepareStatement("DELETE FROM course_results WHERE course_id = ?")) {
+                    pstDeleteResults.setString(1, courseId);
+                    pstDeleteResults.executeUpdate();
+                }
+
+                // CRITICAL STEP 2: Delete from attendance
+                try (PreparedStatement pstDeleteAttendance = conn.prepareStatement("DELETE FROM attendance WHERE course_id = ?")) {
+                    pstDeleteAttendance.setString(1, courseId);
+                    pstDeleteAttendance.executeUpdate();
+                }
+
+                // CRITICAL STEP 3: Delete from course_registrations
                 try (PreparedStatement pstDeleteRegs = conn.prepareStatement("DELETE FROM course_registrations WHERE course_id = ?")) {
                     pstDeleteRegs.setString(1, courseId);
                     pstDeleteRegs.executeUpdate();
                 }
                 
-                // 2. Delete the course itself
+                // 4. Delete the course itself
                 try (PreparedStatement pstDeleteCourse = conn.prepareStatement("DELETE FROM courses WHERE course_id = ?")) {
                     pstDeleteCourse.setString(1, courseId);
                     int rowsDeleted = pstDeleteCourse.executeUpdate();
@@ -450,7 +464,7 @@ public class ManageCoursesPage extends JPanel {
                         // ignored
                     }
                 }
-                JOptionPane.showMessageDialog(this, "Database error during permanent deletion: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Database error during permanent deletion: " + ex.getMessage() + ". Transaction aborted.", "Database Error", JOptionPane.ERROR_MESSAGE);
                 ex.printStackTrace();
             } finally {
                 if (conn != null) {

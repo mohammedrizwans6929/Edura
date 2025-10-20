@@ -4,6 +4,9 @@ import java.awt.event.*;
 
 public class AdminPage extends JPanel {
     private MainFrame main;
+    private Color primary = new Color(52, 152, 219);
+    private Color primaryDark = new Color(41, 128, 185);
+    private Color danger = new Color(231, 76, 60); // Red color for Logout
 
     public AdminPage(MainFrame main) {
         this.main = main;
@@ -14,9 +17,6 @@ public class AdminPage extends JPanel {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(15, 15, 15, 15);
         gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        Color primary = new Color(52, 152, 219);
-        Color primaryDark = new Color(41, 128, 185);
 
         // Title
         JLabel lblTitle = new JLabel("Admin Dashboard");
@@ -51,31 +51,36 @@ public class AdminPage extends JPanel {
         gbc.gridy = 2;
         add(btnViewStudents, gbc);
         
-        // 🔴 NEW: Course Attendance Button
         JButton btnAttendance = new JButton("Course Attendance");
         styleButton(btnAttendance, primary, primaryDark);
         gbc.gridx = 1;
         gbc.gridy = 2;
         add(btnAttendance, gbc);
         
-        // Row 3 (Back Button)
-        JButton btnBack = new JButton("Back");
-        styleSmallButton(btnBack, primary, primaryDark);
+        // Row 3 (Logout Button)
+        JButton btnLogout = new JButton("Logout");
+        styleSmallButton(btnLogout, danger, danger.darker()); 
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.gridwidth = 2;
-        add(btnBack, gbc);
+        add(btnLogout, gbc);
 
         // Button actions
         btnAddCourse.addActionListener(e -> main.showPage("addcourse"));
         btnManageCourses.addActionListener(e -> main.showPage("managecourses"));
         btnViewStudents.addActionListener(e -> main.showPage("viewstudents"));
-        
-        // 🔴 NEW Action
         btnAttendance.addActionListener(e -> main.showPage("courseattendance"));
         
-        btnBack.addActionListener(e -> main.showPage("welcome"));
-
+        // 🚨 CORRECTED LOGOUT ACTION: Navigate back to the "adminlogin" page.
+        btnLogout.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(this,
+                    "Are you sure you want to log out?",
+                    "Logout Confirmation", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                // Assuming the AdminLogin page is registered with the key "adminlogin"
+                main.showPage("adminlogin"); 
+            }
+        });
     }
 
     private void styleButton(JButton b, Color primary, Color primaryDark) {
@@ -95,8 +100,8 @@ public class AdminPage extends JPanel {
         });
     }
 
-    private void styleSmallButton(JButton b, Color primary, Color primaryDark) {
-        b.setBackground(primary);
+    private void styleSmallButton(JButton b, Color bg, Color hover) {
+        b.setBackground(bg);
         b.setForeground(Color.WHITE);
         b.setFont(new Font("Segoe UI", Font.BOLD, 13));
         b.setFocusPainted(false);
@@ -106,9 +111,9 @@ public class AdminPage extends JPanel {
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         b.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) { b.setBackground(primaryDark); }
+            public void mouseEntered(java.awt.event.MouseEvent e) { b.setBackground(hover); }
             @Override
-            public void mouseExited(java.awt.event.MouseEvent e) { b.setBackground(primary); }
+            public void mouseExited(java.awt.event.MouseEvent e) { b.setBackground(bg); }
         });
     }
 }

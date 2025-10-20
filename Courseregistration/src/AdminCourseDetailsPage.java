@@ -65,32 +65,20 @@ public class AdminCourseDetailsPage extends JPanel {
         JButton btnEdit = new JButton("Edit");
         JButton btnDelete = new JButton("Delete");
         
-        // Style buttons using primary color for consistency
         styleButton(btnEdit, new Color(41, 128, 185), new Color(52, 152, 219));
         styleButton(btnDelete, new Color(231, 76, 60), new Color(192, 57, 43));
 
 
         btnEdit.addActionListener(e -> {
-            // Assuming EditCourseDialog exists and accepts (MainFrame, courseId, parentFrame)
-            // It needs to be initialized with the main frame as the owner
-            // For simplicity, passing null as the owner JDialog/JFrame, 
-            // but in a real app, 'main' should ideally be passed or a reference to its JFrame instance.
-            // Placeholder: new EditCourseDialog(main, courseId, (Frame) SwingUtilities.getWindowAncestor(this)).setVisible(true);
-            // Assuming a constructor that works with 'null' owner for demonstration
-            // Note: The original code passed 'null', so we maintain that
-            // new EditCourseDialog(main, courseId, null).setVisible(true);
-            
-            // As EditCourseDialog class is not provided, we just assume it refreshes the details.
-            // In a real application, you'd launch the dialog here.
-            
-            // Re-load details to reflect changes after the dialog is closed
+            JOptionPane.showMessageDialog(this, "Edit function initiated. Navigation to dedicated Edit Page required.");
+            // Logic to launch EditCoursePage/EditCourseDialog would go here
             loadDetails(); 
         });
 
         btnDelete.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(this,
-                    "Are you sure you want to delete this course and all associated student registrations?",
-                    "Confirm Delete", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                    "Are you sure you want to PERMANENTLY delete this course? This will remove ALL associated records (registrations, attendance, results).",
+                    "Confirm Permanent Delete", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
             if (confirm == JOptionPane.YES_OPTION) {
                 deleteCourse();
             }
@@ -105,8 +93,8 @@ public class AdminCourseDetailsPage extends JPanel {
 
     private void loadDetails() {
         // Define formatters for date and time
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, MMMM d, yyyy"); // e.g., Friday, October 17, 2025
-        SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a"); // e.g., 12:34 AM
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, MMMM d, yyyy");
+        SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a");
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pst = conn.prepareStatement("SELECT * FROM courses WHERE course_id = ?")) {
@@ -118,7 +106,7 @@ public class AdminCourseDetailsPage extends JPanel {
                 Date sqlDate = rs.getDate("course_date");
                 Date sqlTime = rs.getTime("course_time");
                 
-                // Format the Date and Time for display, checking for nulls
+                // Format the Date and Time for display
                 String formattedDate = (sqlDate != null) ? dateFormat.format(sqlDate) : "N/A";
                 String formattedTime = (sqlTime != null) ? timeFormat.format(sqlTime) : "N/A";
 
@@ -128,7 +116,6 @@ public class AdminCourseDetailsPage extends JPanel {
                 lblTime.setText("🕒 Time: " + formattedTime);
                 lblMode.setText("Mode: " + rs.getString("mode"));
             } else {
-                 // Handle case where course was deleted externally or ID is invalid
                  lblName.setText("Course Not Found");
                  lblDate.setText("");
                  lblTime.setText("");
@@ -145,25 +132,37 @@ public class AdminCourseDetailsPage extends JPanel {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false); // Start transaction for atomicity
 
-            // 1. Delete dependent records from the 'registrations' table
-            // This prevents the Foreign Key Constraint error (the issue you faced)
-            try (PreparedStatement pstDeleteRegistrations = conn.prepareStatement(
-                    "DELETE FROM registrations WHERE course_id = ?")) {
-                pstDeleteRegistrations.setString(1, courseId);
-                int deletedRegs = pstDeleteRegistrations.executeUpdate();
-                System.out.println("Deleted " + deletedRegs + " dependent registrations.");
+            // --- Delete Dependent Records (Order is crucial to avoid FK violation) ---
+            
+            // 1. Delete from course_results (Certificates/Final Grades)
+            try (PreparedStatement pstDeleteResults = conn.prepareStatement("DELETE FROM course_results WHERE course_id = ?")) {
+                pstDeleteResults.setString(1, courseId);
+                pstDeleteResults.executeUpdate();
             }
 
-            // 2. Delete the course itself from the 'courses' table
+            // 2. Delete from attendance (Attendance History)
+            try (PreparedStatement pstDeleteAttendance = conn.prepareStatement("DELETE FROM attendance WHERE course_id = ?")) {
+                pstDeleteAttendance.setString(1, courseId);
+                pstDeleteAttendance.executeUpdate();
+            }
+
+            // 3. Delete from course_registrations (Active Enrollments)
+            try (PreparedStatement pstDeleteRegistrations = conn.prepareStatement(
+                    "DELETE FROM course_registrations WHERE course_id = ?")) { 
+                pstDeleteRegistrations.setString(1, courseId);
+                pstDeleteRegistrations.executeUpdate();
+            }
+
+            // 4. Delete the course itself from the 'courses' table
             try (PreparedStatement pstDeleteCourse = conn.prepareStatement(
                     "DELETE FROM courses WHERE course_id = ?")) {
                 pstDeleteCourse.setString(1, courseId);
                 pstDeleteCourse.executeUpdate();
             }
 
-            conn.commit(); // Commit the transaction if both deletions succeed
+            conn.commit(); // Commit the transaction if all deletions succeed
             
-            JOptionPane.showMessageDialog(this, "Course and all related registrations deleted successfully! ✔️");
+            JOptionPane.showMessageDialog(this, "Course and all related data deleted successfully! ✔️");
             main.showPage("managecourses");
             
         } catch (SQLException ex) {
@@ -172,7 +171,7 @@ public class AdminCourseDetailsPage extends JPanel {
                 try {
                     conn.rollback();
                 } catch (SQLException rbEx) {
-                    // Log or handle rollback exception if needed
+                    // ignored
                 }
             }
             JOptionPane.showMessageDialog(this, "Error deleting course: " + ex.getMessage() + "\nDatabase operation failed and was rolled back.", "Deletion Error", JOptionPane.ERROR_MESSAGE);
@@ -183,7 +182,7 @@ public class AdminCourseDetailsPage extends JPanel {
                     conn.setAutoCommit(true);
                     conn.close();
                 } catch (SQLException closeEx) {
-                    // Log or handle close exception
+                    // ignored
                 }
             }
         }
@@ -198,7 +197,7 @@ public class AdminCourseDetailsPage extends JPanel {
         b.setOpaque(true);
         b.setPreferredSize(new Dimension(100, 35));
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        b.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10)); // Added slight padding
+        b.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         b.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) { b.setBackground(hover); }
             public void mouseExited(MouseEvent e) { b.setBackground(bg); }

@@ -1,14 +1,15 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*; // Keep for ActionListener and MouseAdapter
+import java.awt.event.*;
 
 public class Dashboard extends JPanel {
     private MainFrame main;
-    private String admissionNo;     
-    private String fullName;  
+    private String admissionNo;
+    private String fullName;
 
     private Color primary = new Color(52, 152, 219);
     private Color primaryDark = new Color(41, 128, 185);
+    private Color danger = new Color(231, 76, 60);
 
     public Dashboard(MainFrame main, String admissionNo, String fullName) {
         this.main = main;
@@ -19,9 +20,9 @@ public class Dashboard extends JPanel {
 
     private void initUI() {
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
+        setBackground(new Color(245, 247, 250)); // Light background for contrast
 
-        // ===== Top Header =====
+        // ===== Top Header (Unchanged for welcome message) =====
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(primary);
         header.setPreferredSize(new Dimension(800, 60));
@@ -32,7 +33,7 @@ public class Dashboard extends JPanel {
         title.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
 
         JButton btnLogout = new JButton("Logout");
-        styleLogoutButton(btnLogout);
+        styleLogoutButton(btnLogout, danger, danger.darker()); // Use red styling
         btnLogout.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(this,
                     "Are you sure you want to log out?",
@@ -46,34 +47,44 @@ public class Dashboard extends JPanel {
         header.add(btnLogout, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
 
-        // ===== Center Navigation Panel (Reduced to 4 Rows) =====
-        // 🔴 FIX: Changed GridLayout from 5 to 4 rows
-        JPanel centerPanel = new JPanel(new GridLayout(4, 1, 10, 10)); 
-        centerPanel.setBorder(BorderFactory.createEmptyBorder(40, 250, 40, 250)); // Adjusted padding
-        centerPanel.setBackground(Color.WHITE);
+        // ===== Center Navigation Panel (Admin Page Style) =====
+        JPanel centerContainer = new JPanel(new GridBagLayout());
+        centerContainer.setBackground(new Color(245, 247, 250));
+        centerContainer.setBorder(BorderFactory.createEmptyBorder(40, 50, 40, 50));
 
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(15, 15, 15, 15);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Row 1
         JButton btnProfile = new JButton(" View Profile");
+        styleLargeNavButton(btnProfile, primary, primaryDark);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        centerContainer.add(btnProfile, gbc);
+
         JButton btnMyCourses = new JButton(" My Courses");
+        styleLargeNavButton(btnMyCourses, primary, primaryDark);
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        centerContainer.add(btnMyCourses, gbc);
+
+        // Row 2
         JButton btnAvailableCourses = new JButton(" Available Courses");
+        styleLargeNavButton(btnAvailableCourses, primary, primaryDark);
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        centerContainer.add(btnAvailableCourses, gbc);
+
         JButton btnCertifications = new JButton(" Certifications");
-        // JButton btnTransactions = new JButton("💳 Transactions"); 🔴 REMOVED
+        styleLargeNavButton(btnCertifications, primary, primaryDark);
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        centerContainer.add(btnCertifications, gbc);
 
-        // 🔴 FIX: Use the smaller styling method for all nav buttons
-        styleSmallNavButton(btnProfile);
-        styleSmallNavButton(btnMyCourses);
-        styleSmallNavButton(btnAvailableCourses);
-        styleSmallNavButton(btnCertifications);
-        // styleSmallNavButton(btnTransactions); 🔴 REMOVED
+        add(centerContainer, BorderLayout.CENTER);
 
-        centerPanel.add(btnProfile);
-        centerPanel.add(btnMyCourses);
-        centerPanel.add(btnAvailableCourses);
-        centerPanel.add(btnCertifications);
-        // centerPanel.add(btnTransactions); 🔴 REMOVED
-
-        add(centerPanel, BorderLayout.CENTER);
-
-        // ===== Button Actions =====
+        // ===== Button Actions (Unchanged) =====
         btnProfile.addActionListener(e -> main.showProfilePage(admissionNo));
 
         btnMyCourses.addActionListener(e -> {
@@ -90,54 +101,44 @@ public class Dashboard extends JPanel {
             main.setCurrentStudent(admissionNo);
             main.showMyCertificatesPage();
         });
-        
-        // Removed Transactions action listener
     }
 
     /**
-     * 🔴 NEW: Smaller, standard style for the primary navigation buttons.
+     * Replaces styleSmallNavButton with a larger style, similar to AdminPage.styleButton.
      */
-    private void styleSmallNavButton(JButton btn) {
-        btn.setFocusPainted(false);
-        // Reduced font size and padding for a smaller button
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 14)); 
-        btn.setBackground(primary);
-        btn.setForeground(Color.WHITE);
-        btn.setOpaque(true);
-        btn.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15)); // Smaller padding
-        btn.setPreferredSize(new Dimension(180, 40)); // Standardized size hint
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+    private void styleLargeNavButton(JButton b, Color primary, Color primaryDark) {
+        b.setBackground(primary);
+        b.setForeground(Color.WHITE);
+        b.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        b.setFocusPainted(false);
+        b.setBorderPainted(false);
+        b.setOpaque(true);
+        b.setPreferredSize(new Dimension(220, 45)); // Large size for dashboard buttons
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                btn.setBackground(primaryDark);
-            }
-
+            public void mouseEntered(java.awt.event.MouseEvent e) { b.setBackground(primaryDark); }
             @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                btn.setBackground(primary);
-            }
+            public void mouseExited(java.awt.event.MouseEvent e) { b.setBackground(primary); }
         });
     }
 
-    private void styleLogoutButton(JButton btn) {
-        btn.setFocusPainted(false);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btn.setBackground(new Color(231, 76, 60));
-        btn.setForeground(Color.WHITE);
-        btn.setOpaque(true);
-        btn.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+    /**
+     * Updated Logout button style to be consistent.
+     */
+    private void styleLogoutButton(JButton b, Color bg, Color hover) {
+        b.setFocusPainted(false);
+        b.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        b.setBackground(bg);
+        b.setForeground(Color.WHITE);
+        b.setOpaque(true);
+        b.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                btn.setBackground(new Color(192, 57, 43));
-            }
-
+            public void mouseEntered(java.awt.event.MouseEvent e) { b.setBackground(hover); }
             @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                btn.setBackground(new Color(231, 76, 60));
-            }
+            public void mouseExited(java.awt.event.MouseEvent e) { b.setBackground(bg); }
         });
     }
 }

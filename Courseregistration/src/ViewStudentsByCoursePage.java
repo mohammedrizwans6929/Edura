@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 import java.text.MessageFormat;
+import java.util.Vector;
 
 public class ViewStudentsByCoursePage extends JPanel {
     private MainFrame main;
@@ -74,11 +75,10 @@ public class ViewStudentsByCoursePage extends JPanel {
         // --- Table Setup ---
         String[] columns = {"Admission No", "Full Name", "Email", "Phone", "Semester", "Batch", "Department", "Class No"};
         
-        // Custom model to make cells NON-EDITABLE
         model = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // All cells are not editable
+                return false; 
             }
         };
 
@@ -108,7 +108,6 @@ public class ViewStudentsByCoursePage extends JPanel {
         add(btnPanel, BorderLayout.SOUTH);
 
         // --- Event Handlers ---
-        // 🔑 FIX: Call clearFields() when exiting the page
         btnBack.addActionListener(e -> {
             clearFields(); 
             main.showPage("admin");
@@ -116,8 +115,8 @@ public class ViewStudentsByCoursePage extends JPanel {
         
         btnPrint.addActionListener(e -> printTable());
         
-        // Action to trigger course search and selection
-        ActionListener searchAction = e -> searchAndSelectCourse(txtCourseSearch.getText());
+        // Action to trigger course search
+        ActionListener searchAction = e -> searchCoursesForSelection(txtCourseSearch.getText());
         btnSearchCourse.addActionListener(searchAction);
         txtCourseSearch.addActionListener(searchAction); 
     }
@@ -132,66 +131,115 @@ public class ViewStudentsByCoursePage extends JPanel {
         model.setRowCount(0);
     }
     
-    // --- Data Loading Logic ---
+    // --- New Search and Selection Logic ---
 
     /**
-     * Searches for a course and, if found uniquely, loads its students.
+     * Searches for courses matching the term and opens a dialog for selection.
      */
-    private void searchAndSelectCourse(String searchTerm) {
+    private void searchCoursesForSelection(String searchTerm) {
         if (searchTerm.trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please enter a Course ID or Name to search.", "Search Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
+        
+        // Clear previous results while searching
+        lblSelectedCourseId.setText("Searching...");
+        model.setRowCount(0);
+        currentCourseId = null;
 
         try (Connection conn = DBConnection.getConnection()) {
-            // Search for active courses matching the term
-            String sql = "SELECT course_id, course_name FROM courses WHERE is_deleted = FALSE AND (course_id = ? OR course_name LIKE ?)";
+            // Case-Insensitive Search: Use LIKE and LOWER() to find all active courses matching the term
+            String sql = "SELECT course_id, course_name FROM courses WHERE is_deleted = FALSE AND (LOWER(course_id) LIKE ? OR LOWER(course_name) LIKE ?)";
             PreparedStatement pst = conn.prepareStatement(sql);
             
-            // Try exact ID match first
-            pst.setString(1, searchTerm.trim()); 
-            // Then generic name/ID match
-            String likeTerm = "%" + searchTerm.trim() + "%";
+            String likeTerm = "%" + searchTerm.trim().toLowerCase() + "%";
+            pst.setString(1, likeTerm); 
             pst.setString(2, likeTerm); 
             
             ResultSet rs = pst.executeQuery();
             
-            // Handle results
-            if (!rs.isBeforeFirst()) {
-                // No courses found
+            Vector<CourseOption> courseOptions = new Vector<>();
+            while (rs.next()) {
+                // Store results as objects for the dialog
+                courseOptions.add(new CourseOption(rs.getString("course_id"), rs.getString("course_name")));
+            }
+
+            if (courseOptions.isEmpty()) {
                 lblSelectedCourseId.setText("Selected Course: None");
-                currentCourseId = null;
-                model.setRowCount(0);
                 JOptionPane.showMessageDialog(this, "No active course found matching the search term.", "Course Not Found", JOptionPane.INFORMATION_MESSAGE);
-            } else if (rs.next()) {
-                // Course found (assumes unique result or takes the first)
-                currentCourseId = rs.getString("course_id");
-                String courseName = rs.getString("course_name");
-                lblSelectedCourseId.setText("Selected Course: " + courseName + " (" + currentCourseId + ")");
-                loadStudents(); // Load students for the found course
+            } else if (courseOptions.size() == 1) {
+                // If only one course found, select it automatically
+                selectCourse(courseOptions.firstElement().id, courseOptions.firstElement().name);
+            } else {
+                // Multiple courses found, open selection dialog
+                showCourseSelectionDialog(courseOptions);
             }
         } catch (SQLException ex) {
+            lblSelectedCourseId.setText("Selected Course: Error");
             JOptionPane.showMessageDialog(this, "Error during course search: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+    
+    /**
+     * Shows a dialog allowing the admin to select one course from the list.
+     */
+    private void showCourseSelectionDialog(Vector<CourseOption> courseOptions) {
+        // Convert Vector of objects to array of display strings
+        String[] displayOptions = courseOptions.stream()
+            .map(c -> c.id + " - " + c.name)
+            .toArray(String[]::new);
+
+        String selectedValue = (String) JOptionPane.showInputDialog(
+            this,
+            "Multiple courses found. Select one to view students:",
+            "Course Selection",
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            displayOptions,
+            displayOptions[0]
+        );
+
+        if (selectedValue != null) {
+            // Find the selected CourseOption object using the display string's ID
+            String selectedId = selectedValue.substring(0, selectedValue.indexOf(" - "));
+            CourseOption selectedCourse = courseOptions.stream()
+                .filter(c -> c.id.equals(selectedId))
+                .findFirst()
+                .orElse(null);
+
+            if (selectedCourse != null) {
+                selectCourse(selectedCourse.id, selectedCourse.name);
+            }
+        } else {
+            lblSelectedCourseId.setText("Selected Course: None");
+        }
+    }
+    
+    /**
+     * Sets the selected course ID and triggers student roster load.
+     */
+    private void selectCourse(String courseId, String courseName) {
+        this.currentCourseId = courseId;
+        lblSelectedCourseId.setText("Selected Course: " + courseName + " (" + courseId + ")");
+        loadStudents();
     }
     
     /**
      * Loads students registered for the currently selected course ID.
      */
     private void loadStudents() {
-        model.setRowCount(0); // Clear existing table data
+        model.setRowCount(0);
 
         if (currentCourseId == null) {
             return;
         }
 
         try (Connection conn = DBConnection.getConnection();
-             // Join students (s) with course_registrations (cr)
              PreparedStatement pst = conn.prepareStatement(
                  "SELECT s.admission_no, s.full_name, s.email, s.phone, s.semester, s.batch, s.dept, s.class_no " +
                  "FROM students s " +
                  "JOIN course_registrations cr ON s.admission_no = cr.student_admission_no " +
-                 "WHERE cr.course_id = ? AND cr.is_cancelled = FALSE " + // Filter for active and specific course
+                 "WHERE cr.course_id = ? AND cr.is_cancelled = FALSE " + 
                  "ORDER BY s.full_name")) {
 
             pst.setString(1, currentCourseId);
@@ -221,7 +269,7 @@ public class ViewStudentsByCoursePage extends JPanel {
             }
 
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error loading student details. Please verify your table schemas: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error loading student details: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
             ex.printStackTrace();
         }
     }
@@ -269,5 +317,18 @@ public class ViewStudentsByCoursePage extends JPanel {
             public void mouseEntered(java.awt.event.MouseEvent e){ b.setBackground(primaryDark);}
             public void mouseExited(java.awt.event.MouseEvent e){ b.setBackground(primary);}
         });
+    }
+    
+    /**
+     * Simple container class for course selection results.
+     */
+    private static class CourseOption {
+        String id;
+        String name;
+
+        public CourseOption(String id, String name) {
+            this.id = id;
+            this.name = name;
+        }
     }
 }
