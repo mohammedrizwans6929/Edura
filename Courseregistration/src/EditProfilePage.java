@@ -4,7 +4,7 @@ import java.awt.event.*;
 import java.sql.*;
 import com.toedter.calendar.JDateChooser; 
 import java.text.SimpleDateFormat;
-import java.util.Date; // Required for java.util.Date
+import java.util.Date; // Required java.util.Date
 
 public class EditProfilePage extends JPanel {
     private MainFrame main;
@@ -225,4 +225,5 @@ public class EditProfilePage extends JPanel {
             }
         });
     }
+
 }
