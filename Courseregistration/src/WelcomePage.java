@@ -56,3 +56,4 @@ public class WelcomePage extends JPanel {
         });
     }
 }
+
