@@ -6,7 +6,7 @@ import java.sql.*;
 public class Login extends JPanel {
     private JTextField txtUser;
     private JPasswordField txtPass;
-    private MainFrame main;  // Reference to the main frame for navigation
+    private MainFrame main;  // Reference the main frame for navigation
 
     public Login(MainFrame main) {
         this.main = main;
@@ -221,3 +221,4 @@ public class Login extends JPanel {
         });
     }
 }
+
