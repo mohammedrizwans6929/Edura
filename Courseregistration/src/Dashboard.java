@@ -141,4 +141,5 @@ public class Dashboard extends JPanel {
             public void mouseExited(java.awt.event.MouseEvent e) { b.setBackground(bg); }
         });
     }
+
 }
