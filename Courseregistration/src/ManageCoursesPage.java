@@ -533,4 +533,5 @@ public class ManageCoursesPage extends JPanel {
             public void mouseExited(MouseEvent e) { b.setBackground(bg); }
         });
     }
+
 }
