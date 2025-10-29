@@ -3,14 +3,14 @@ import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
-import java.io.File; // Needed for checking poster file existence
+import java.io.File; 
 
 public class CourseDetailsPage extends JPanel {
     private MainFrame main;
     private String courseId;
     private String studentAdmissionNo;
     private JButton btnRegister;
-    // Define the Green color used for 'Already Registered'
+ 
     private final Color SUCCESS_GREEN = new Color(46, 204, 113);
     private final Color PRIMARY_BLUE = new Color(52, 152, 219);
 
@@ -23,10 +23,10 @@ public class CourseDetailsPage extends JPanel {
     }
 
     private void initUI() {
-        // Use defined color constant
+       
         Color primary = PRIMARY_BLUE;
 
-        // Header
+       
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(primary);
         header.setPreferredSize(new Dimension(800, 60));
@@ -38,20 +38,20 @@ public class CourseDetailsPage extends JPanel {
         header.add(lblTitle, BorderLayout.WEST);
         add(header, BorderLayout.NORTH);
 
-        // Content panel - will be placed inside JScrollPane
+       
         JPanel content = new JPanel();
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
-        content.setBackground(new Color(245, 247, 250)); // Light background for contrast
+        content.setBackground(new Color(245, 247, 250)); /
 
-        // Poster Label setup
+      
         JLabel lblPoster = new JLabel();
         lblPoster.setHorizontalAlignment(SwingConstants.CENTER);
         lblPoster.setAlignmentX(Component.CENTER_ALIGNMENT);
         lblPoster.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
 
         JLabel lblName = new JLabel();
-        lblName.setFont(new Font("Segoe UI", Font.BOLD, 24)); // Larger font for name
+        lblName.setFont(new Font("Segoe UI", Font.BOLD, 24)); 
         lblName.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel lblDate = new JLabel();
@@ -66,15 +66,15 @@ public class CourseDetailsPage extends JPanel {
         lblMode.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         lblMode.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Description Area
-        JTextArea txtDescription = new JTextArea(10, 40); // Initial size hint for description
+       
+        JTextArea txtDescription = new JTextArea(10, 40); 
         txtDescription.setLineWrap(true);
         txtDescription.setWrapStyleWord(true);
         txtDescription.setEditable(false);
         txtDescription.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         txtDescription.setBorder(BorderFactory.createTitledBorder("Description"));
 
-        // --- Add components to content panel ---
+       
         content.add(lblPoster);
         content.add(Box.createVerticalStrut(20));
         content.add(lblName);
@@ -85,19 +85,19 @@ public class CourseDetailsPage extends JPanel {
         content.add(Box.createVerticalStrut(20));
         content.add(new JScrollPane(txtDescription));
 
-        // Make the page scrollable
+       
         JScrollPane mainScrollPane = new JScrollPane(content);
         mainScrollPane.getVerticalScrollBar().setUnitIncrement(16);
         mainScrollPane.setBorder(BorderFactory.createEmptyBorder());
         add(mainScrollPane, BorderLayout.CENTER);
 
-        // Footer with Back and Register
+        
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         footer.setBackground(Color.WHITE);
 
         JButton btnBack = new JButton("Back");
         styleButton(btnBack, new Color(231, 76, 60), new Color(192, 57, 43));
-        // Use main.showPage("availablecourses") to show the main page
+        
         btnBack.addActionListener(e -> main.showPage("availablecourses"));
 
         btnRegister = new JButton("Register");
@@ -109,7 +109,7 @@ public class CourseDetailsPage extends JPanel {
 
         add(footer, BorderLayout.SOUTH);
 
-        // Load data on page initialization
+      
         loadCourseDetails(lblPoster, lblName, lblDate, lblTime, lblMode, txtDescription);
         checkIfAlreadyRegistered();
     }
@@ -125,8 +125,8 @@ public class CourseDetailsPage extends JPanel {
 
                 java.util.Date date = rs.getDate("course_date");
                 java.sql.Time time = rs.getTime("course_time");
-                SimpleDateFormat df = new SimpleDateFormat("MMM dd, yyyy"); // Match AvailableCoursesPage format
-                SimpleDateFormat tf = new SimpleDateFormat("hh:mm a");       // Match AvailableCoursesPage format
+                SimpleDateFormat df = new SimpleDateFormat("MMM dd, yyyy"); 
+                SimpleDateFormat tf = new SimpleDateFormat("hh:mm a");       
                 lblDate.setText(" Date: " + df.format(date));
                 lblTime.setText(" Time: " + tf.format(time));
                 lblMode.setText("Mode: " + rs.getString("mode"));
@@ -135,7 +135,7 @@ public class CourseDetailsPage extends JPanel {
 
                 String poster = rs.getString("poster");
 
-                // Poster loading and scaling logic
+               
                 if (poster != null && !poster.equals("No file chosen")) {
                     File posterFile = new File("posters/" + poster);
                     if (posterFile.exists()) {
@@ -181,9 +181,7 @@ public class CourseDetailsPage extends JPanel {
         }
     }
 
-    /**
-     * Checks the course_registrations table for an ACTIVE (is_cancelled = FALSE) registration.
-     */
+   
     private void checkIfAlreadyRegistered() {
         String sql = "SELECT * FROM course_registrations WHERE student_admission_no = ? AND course_id = ? AND is_cancelled = FALSE";
 
@@ -194,13 +192,13 @@ public class CourseDetailsPage extends JPanel {
             ResultSet rs = pst.executeQuery();
 
             if (rs.next()) {
-                // Student already actively registered
+               
                 btnRegister.setEnabled(false);
                 btnRegister.setText("Already Registered ✅");
                 btnRegister.setBackground(SUCCESS_GREEN);
                 btnRegister.setCursor(Cursor.getDefaultCursor());
             } else {
-                // Not registered or registration was cancelled
+               
                 btnRegister.setEnabled(true);
                 btnRegister.setText("Register");
                 btnRegister.setBackground(PRIMARY_BLUE);
@@ -211,9 +209,7 @@ public class CourseDetailsPage extends JPanel {
         }
     }
 
-    /**
-     * Inserts a new active registration record into the course_registrations table.
-     */
+  
     private void registerForCourse() {
         String sql = "INSERT INTO course_registrations (student_admission_no, course_id, is_cancelled) VALUES (?, ?, FALSE)";
 
@@ -225,10 +221,10 @@ public class CourseDetailsPage extends JPanel {
 
             JOptionPane.showMessageDialog(this, "You have successfully registered for this course! 🎉");
             
-            // Update the UI and refresh the AvailableCoursesPage
+           
             checkIfAlreadyRegistered(); 
 
-            // THIS IS THE CRITICAL BLOCK that requires the method in MainFrame.java
+           
             if (main.getAvailableCoursesPage() != null) {
                 main.getAvailableCoursesPage().refreshCourses();
             }
@@ -248,15 +244,15 @@ public class CourseDetailsPage extends JPanel {
         b.setFocusPainted(false);
         b.setBorderPainted(false);
         b.setOpaque(true);
-        b.setPreferredSize(new Dimension(150, 40)); // Consistent size for action buttons
+        b.setPreferredSize(new Dimension(150, 40)); 
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         b.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
-                // Do not apply hover to the 'Already Registered' button
+              
                 if (b.isEnabled()) b.setBackground(hover);
             }
             public void mouseExited(MouseEvent e) {
-                // Restore original color, but keep the green if already registered
+              
                 if (b.isEnabled()) {
                     if (b.getText().equals("Already Registered ✅")) {
                         b.setBackground(SUCCESS_GREEN);
@@ -271,4 +267,5 @@ public class CourseDetailsPage extends JPanel {
             }
         });
     }
+
 }
