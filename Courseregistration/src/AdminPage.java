@@ -6,7 +6,7 @@ public class AdminPage extends JPanel {
     private MainFrame main;
     private Color primary = new Color(52, 152, 219);
     private Color primaryDark = new Color(41, 128, 185);
-    private Color danger = new Color(231, 76, 60); // Red color for Logout
+    private Color danger = new Color(231, 76, 60); 
 
     public AdminPage(MainFrame main) {
         this.main = main;
@@ -18,7 +18,7 @@ public class AdminPage extends JPanel {
         gbc.insets = new Insets(15, 15, 15, 15);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Title
+      
         JLabel lblTitle = new JLabel("Admin Dashboard");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblTitle.setForeground(primary);
@@ -31,7 +31,7 @@ public class AdminPage extends JPanel {
         gbc.gridwidth = 1;
         gbc.anchor = GridBagConstraints.CENTER;
 
-        // Row 1
+      
         JButton btnAddCourse = new JButton("Add Course");
         styleButton(btnAddCourse, primary, primaryDark);
         gbc.gridx = 0;
@@ -44,7 +44,7 @@ public class AdminPage extends JPanel {
         gbc.gridy = 1;
         add(btnManageCourses, gbc);
 
-        // Row 2
+      
         JButton btnViewStudents = new JButton("View Students By Course");
         styleButton(btnViewStudents, primary, primaryDark);
         gbc.gridx = 0;
@@ -57,7 +57,7 @@ public class AdminPage extends JPanel {
         gbc.gridy = 2;
         add(btnAttendance, gbc);
         
-        // Row 3 (Logout Button)
+  
         JButton btnLogout = new JButton("Logout");
         styleSmallButton(btnLogout, danger, danger.darker()); 
         gbc.gridx = 0;
@@ -65,19 +65,19 @@ public class AdminPage extends JPanel {
         gbc.gridwidth = 2;
         add(btnLogout, gbc);
 
-        // Button actions
+    
         btnAddCourse.addActionListener(e -> main.showPage("addcourse"));
         btnManageCourses.addActionListener(e -> main.showPage("managecourses"));
         btnViewStudents.addActionListener(e -> main.showPage("viewstudents"));
         btnAttendance.addActionListener(e -> main.showPage("courseattendance"));
         
-        // 🚨 CORRECTED LOGOUT ACTION: Navigate back to the "adminlogin" page.
+      
         btnLogout.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(this,
                     "Are you sure you want to log out?",
                     "Logout Confirmation", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                // Assuming the AdminLogin page is registered with the key "adminlogin"
+               
                 main.showPage("adminlogin"); 
             }
         });
@@ -118,3 +118,4 @@ public class AdminPage extends JPanel {
     }
 
 }
+
