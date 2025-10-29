@@ -17,7 +17,7 @@ public class CourseRegisteredDetailsPage extends JPanel {
     private Color primary = new Color(52, 152, 219);
     private Color danger = new Color(231, 76, 60);
 
-    // Variables to store course time for cancellation check
+    
     private Date courseDateTime;
     private String courseName;
 
@@ -27,11 +27,11 @@ public class CourseRegisteredDetailsPage extends JPanel {
         this.studentAdmissionNo = studentAdmissionNo;
         setLayout(new BorderLayout());
         initUI();
-        loadCourseDetails(); // Load details immediately
+        loadCourseDetails(); 
     }
 
     private void initUI() {
-        // ===== Header =====
+       
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(primary);
         header.setPreferredSize(new Dimension(800, 60));
@@ -43,7 +43,7 @@ public class CourseRegisteredDetailsPage extends JPanel {
         header.add(lblTitle, BorderLayout.WEST);
         add(header, BorderLayout.NORTH);
 
-        // ===== Content Panel (Scrollable) =====
+        
         JPanel content = new JPanel();
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
@@ -91,13 +91,13 @@ public class CourseRegisteredDetailsPage extends JPanel {
         mainScrollPane.setBorder(BorderFactory.createEmptyBorder());
         add(mainScrollPane, BorderLayout.CENTER);
 
-        // ===== Footer with Back and Cancel Button =====
+       
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         footer.setBackground(Color.WHITE);
 
         JButton btnBack = new JButton("Back to My Courses");
         styleButton(btnBack, primary, primary.darker(), new Dimension(180, 35));
-        btnBack.addActionListener(e -> main.showMyCoursesPage()); // Go back to refresh MyCoursesPage
+        btnBack.addActionListener(e -> main.showMyCoursesPage()); 
 
         btnCancelRegistration = new JButton("Cancel Registration");
         styleButton(btnCancelRegistration, danger, danger.darker(), new Dimension(180, 35));
@@ -109,10 +109,10 @@ public class CourseRegisteredDetailsPage extends JPanel {
         add(footer, BorderLayout.SOUTH);
     }
 
-    // --- Data Loading and Status Check ---
+    
 
     private void loadCourseDetails() {
-        // Retrieve UI components safely 
+       
         JPanel contentPanel = (JPanel)((JScrollPane)getComponent(1)).getViewport().getView();
         JLabel lblPoster = (JLabel) contentPanel.getComponent(0);
         JLabel lblName = (JLabel) contentPanel.getComponent(2);
@@ -127,16 +127,16 @@ public class CourseRegisteredDetailsPage extends JPanel {
             ResultSet rs = pst.executeQuery();
             
             if (rs.next()) {
-                this.courseName = rs.getString("course_name"); // Store for cancellation confirmation
+                this.courseName = rs.getString("course_name"); 
                 lblName.setText(this.courseName);
 
                 Date date = rs.getDate("course_date");
                 Time time = rs.getTime("course_time");
                 
-                // Combine date and time using robust timestamp merging
+               
                 Calendar courseCal = Calendar.getInstance();
                 courseCal.setTimeInMillis(date.getTime() + time.getTime());
-                this.courseDateTime = courseCal.getTime(); // Store combined date/time
+                this.courseDateTime = courseCal.getTime();
 
                 SimpleDateFormat df = new SimpleDateFormat("MMM dd, yyyy");
                 SimpleDateFormat tf = new SimpleDateFormat("hh:mm a");
@@ -207,13 +207,12 @@ public class CourseRegisteredDetailsPage extends JPanel {
         }
 
         long courseTimeMillis = this.courseDateTime.getTime();
-        
-        // Deadline is 24 hours (1 day) before the course time
+     
         long deadlineMillis = courseTimeMillis - TimeUnit.DAYS.toMillis(1);
         long currentTimeMillis = new Date().getTime();
 
         if (currentTimeMillis > deadlineMillis) {
-            // Cancellation deadline passed
+            
             btnCancelRegistration.setEnabled(false);
             btnCancelRegistration.setText("Deadline Passed");
             btnCancelRegistration.setBackground(Color.GRAY);
@@ -224,8 +223,7 @@ public class CourseRegisteredDetailsPage extends JPanel {
         }
     }
 
-    // --- Cancellation Logic ---
-
+   
     private void cancelRegistration() {
         int confirm = JOptionPane.showConfirmDialog(this,
                 "Are you sure you want to cancel registration for " + this.courseName + "? This action is permanent and makes the slot available to others.",
@@ -233,8 +231,7 @@ public class CourseRegisteredDetailsPage extends JPanel {
         
         if (confirm == JOptionPane.YES_OPTION) {
             try (Connection conn = DBConnection.getConnection();
-                 // 🔑 CRITICAL FIX: Use UPDATE to change status, targeting the ACTIVE record.
-                 // This ensures we do not violate the unique key constraint.
+                
                  PreparedStatement pst = conn.prepareStatement(
                      "UPDATE course_registrations SET is_cancelled = TRUE, cancellation_date = CURRENT_TIMESTAMP " +
                      "WHERE student_admission_no = ? AND course_id = ? AND is_cancelled = FALSE")) {
@@ -245,29 +242,29 @@ public class CourseRegisteredDetailsPage extends JPanel {
                 if (pst.executeUpdate() > 0) {
                     JOptionPane.showMessageDialog(this, "Registration successfully cancelled.", "Success", JOptionPane.INFORMATION_MESSAGE);
                     
-                    // Update button state immediately
+                  
                     btnCancelRegistration.setEnabled(false);
                     btnCancelRegistration.setText("Cancelled");
                     btnCancelRegistration.setBackground(Color.DARK_GRAY);
 
-                    // Refresh both student pages
+                    
                     main.showMyCoursesPage();
                     if (main.getAvailableCoursesPage() != null) {
                         main.getAvailableCoursesPage().refreshCourses();
                     }
                 } else {
-                    // This error path might still be hit if the DB failed to find the active record.
+                    
                     JOptionPane.showMessageDialog(this, "Error: Active registration record not found. It may be already cancelled or the DB state is inconsistent.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (SQLException ex) {
-                // The DB error during cancellation (Duplicate entry) is caught here.
+              
                 JOptionPane.showMessageDialog(this, "Database error during cancellation: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
                 ex.printStackTrace();
             }
         }
     }
     
-    // --- Utility Method ---
+
 
     private void styleButton(JButton b, Color bg, Color hover, Dimension size) {
         b.setBackground(bg);
@@ -287,4 +284,5 @@ public class CourseRegisteredDetailsPage extends JPanel {
             }
         });
     }
+
 }
