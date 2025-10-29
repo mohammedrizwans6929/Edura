@@ -29,7 +29,7 @@ public class AddCoursePage extends JPanel {
     }
 
     private void initUI() {
-        // ===== Header =====
+       
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(primary);
         header.setPreferredSize(new Dimension(800, 60));
@@ -42,7 +42,7 @@ public class AddCoursePage extends JPanel {
 
         add(header, BorderLayout.NORTH);
 
-        // ===== Form Panel (GridBagLayout setup remains the same) =====
+      
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         GridBagConstraints gbc = new GridBagConstraints();
@@ -51,13 +51,13 @@ public class AddCoursePage extends JPanel {
         gbc.gridx = 0;
         gbc.gridy = 0;
 
-        // Course ID
+       
         formPanel.add(new JLabel("Course ID:"), gbc);
         gbc.gridx = 1;
         txtCourseId = new JTextField(20);
         formPanel.add(txtCourseId, gbc);
 
-        // Course Name
+       
         gbc.gridy++;
         gbc.gridx = 0;
         formPanel.add(new JLabel("Course Name:"), gbc);
@@ -65,7 +65,7 @@ public class AddCoursePage extends JPanel {
         txtCourseName = new JTextField(20);
         formPanel.add(txtCourseName, gbc);
 
-        // Description
+       
         gbc.gridy++;
         gbc.gridx = 0;
         formPanel.add(new JLabel("Description:"), gbc);
@@ -75,7 +75,7 @@ public class AddCoursePage extends JPanel {
         txtDescription.setWrapStyleWord(true);
         formPanel.add(new JScrollPane(txtDescription), gbc);
 
-        // Date chooser
+       
         gbc.gridy++;
         gbc.gridx = 0;
         formPanel.add(new JLabel("Course Date:"), gbc);
@@ -85,7 +85,7 @@ public class AddCoursePage extends JPanel {
         dateSpinner.setEditor(dateEditor);
         formPanel.add(dateSpinner, gbc);
 
-        // Time chooser
+        
         gbc.gridy++;
         gbc.gridx = 0;
         formPanel.add(new JLabel("Course Time:"), gbc);
@@ -95,7 +95,7 @@ public class AddCoursePage extends JPanel {
         timeSpinner.setEditor(timeEditor);
         formPanel.add(timeSpinner, gbc);
 
-        // Mode
+      
         gbc.gridy++;
         gbc.gridx = 0;
         formPanel.add(new JLabel("Mode:"), gbc);
@@ -103,7 +103,7 @@ public class AddCoursePage extends JPanel {
         cmbMode = new JComboBox<>(new String[]{"Online", "Offline"});
         formPanel.add(cmbMode, gbc);
 
-        // Poster
+       
         gbc.gridy++;
         gbc.gridx = 0;
         formPanel.add(new JLabel("Poster:"), gbc);
@@ -126,7 +126,7 @@ public class AddCoursePage extends JPanel {
 
         add(formPanel, BorderLayout.CENTER);
 
-        // ===== Footer Buttons =====
+      
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         JButton btnSave = new JButton("Save Course");
         styleButton(btnSave, new Color(46, 204, 113), new Color(39, 174, 96));
@@ -157,7 +157,7 @@ public class AddCoursePage extends JPanel {
             File dest = new File(posterDir, fileName);
 
             try {
-                // Copy the file to the local 'posters' directory
+               
                 Files.copy(selectedFile.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 txtPoster.setText(fileName);
 
@@ -184,7 +184,7 @@ public class AddCoursePage extends JPanel {
             return;
         }
 
-        // Add validation to ensure the date is not in the past (optional but good practice)
+       
         if (date.before(new Date())) {
              int confirm = JOptionPane.showConfirmDialog(this,
                     "The selected date is in the past. Do you still want to save this course?",
@@ -197,7 +197,7 @@ public class AddCoursePage extends JPanel {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pst = conn.prepareStatement(
                      "INSERT INTO courses (course_id, course_name, description, course_date, course_time, mode, poster, is_deleted) VALUES (?, ?, ?, ?, ?, ?, ?, FALSE)")) {
-            // is_deleted is explicitly set to FALSE for a new course
+            
 
             pst.setString(1, courseId);
             pst.setString(2, courseName);
@@ -211,16 +211,16 @@ public class AddCoursePage extends JPanel {
             JOptionPane.showMessageDialog(this, "Course added successfully!");
             clearFields();
 
-            // Refresh Available Courses Page (Student View)
+           
             AvailableCoursesPage acp = (AvailableCoursesPage) main.getPage("availablecourses");
             if (acp != null) {
                 acp.refreshCourses();
             }
 
-            // 🔑 FIX: Refresh Manage Courses Page (Admin View)
+           
             ManageCoursesPage mcp = (ManageCoursesPage) main.getPage("managecourses");
             if (mcp != null) {
-                mcp.refresh(); // Call the public refresh method
+                mcp.refresh(); 
             }
 
         } catch (SQLException ex) {
