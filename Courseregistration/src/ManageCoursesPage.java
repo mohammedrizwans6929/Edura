@@ -13,7 +13,7 @@ public class ManageCoursesPage extends JPanel {
     private JPanel completedCoursesPanel;
     private JPanel deletedCoursesPanel;
     
-    // Search components
+   
     private JTextField txtSearch;
     private JButton btnSearch;
     
@@ -25,16 +25,16 @@ public class ManageCoursesPage extends JPanel {
         this.main = main;
         setLayout(new BorderLayout());
         initUI();
-        loadCourses("upcoming", ""); // Load initially with no search term
+        loadCourses("upcoming", ""); 
     }
 
     private void initUI() {
-        // ===== Top Container (Header and Search) =====
+       
         JPanel topContainer = new JPanel();
         topContainer.setLayout(new BoxLayout(topContainer, BoxLayout.Y_AXIS));
         topContainer.setBackground(new Color(245, 247, 250));
         
-        // ===== 1. Header (Title and Back Button) =====
+    
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(primary);
         header.setPreferredSize(new Dimension(800, 60));
@@ -61,7 +61,6 @@ public class ManageCoursesPage extends JPanel {
         
         topContainer.add(header);
 
-        // ===== 2. Search Panel (Below Title) =====
         JPanel searchWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER));
         searchWrapper.setBackground(new Color(245, 247, 250));
         searchWrapper.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
@@ -90,7 +89,7 @@ public class ManageCoursesPage extends JPanel {
         add(topContainer, BorderLayout.NORTH);
 
 
-        // ===== Tabbed Pane (Center Content) =====
+        
         tabbedPane = new JTabbedPane();
         tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 14));
         tabbedPane.setForeground(primaryDark);
@@ -104,13 +103,13 @@ public class ManageCoursesPage extends JPanel {
         tabbedPane.addTab(" Completed", null, new JScrollPane(completedCoursesPanel), "Past courses");
         tabbedPane.addTab(" Deleted/Archived", null, new JScrollPane(deletedCoursesPanel), "Archived or logic-deleted courses");
 
-        // Listener calls refresh() which handles search and tab changes
+      
         tabbedPane.addChangeListener(e -> refresh());
         
-        // Search Button Action
+   
         btnSearch.addActionListener(e -> refresh());
         
-        // Allow pressing Enter in search field
+    
         txtSearch.addActionListener(e -> refresh());
 
         add(tabbedPane, BorderLayout.CENTER);
@@ -124,14 +123,11 @@ public class ManageCoursesPage extends JPanel {
         return panel;
     }
 
-    /**
-     * Loads courses filtered by category and search term.
-     */
     private void loadCourses(String category, String searchTerm) {
         JPanel targetPanel;
         String sql;
         
-        // Prepare current date and time for precise comparison
+     
         Date currentDate = new Date();
         SimpleDateFormat dateOnlyFormat = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat timeOnlyFormat = new SimpleDateFormat("HH:mm:ss");
@@ -139,18 +135,18 @@ public class ManageCoursesPage extends JPanel {
         String dateString = dateOnlyFormat.format(currentDate);
         String timeString = timeOnlyFormat.format(currentDate);
         
-        // Prepare search filter (applied to course name or ID)
+    
         String filter = "";
         if (searchTerm != null && !searchTerm.trim().isEmpty()) {
             String term = "%" + searchTerm.trim().toLowerCase() + "%";
-            // NOTE: This raw string concatenation is vulnerable to SQL Injection but common in internal tools.
-            filter = " AND (LOWER(course_name) LIKE '" + term + "' OR LOWER(course_id) LIKE '" + term + "')";
+        
+            filter = " AND (LOWER(course_ame) LIKE '" + term + "' OR LOWER(course_id) LIKE '" + term + "')";
         }
 
         switch (category) {
             case "upcoming":
                 targetPanel = upcomingCoursesPanel;
-                // Upcoming courses are future days OR (today AND future time)
+              
                 sql = "SELECT * FROM courses WHERE is_deleted = FALSE AND (" +
                       "course_date > '" + dateString + "' OR " +
                       "(course_date = '" + dateString + "' AND course_time >= '" + timeString + "')" +
@@ -158,7 +154,7 @@ public class ManageCoursesPage extends JPanel {
                 break;
             case "completed":
                 targetPanel = completedCoursesPanel;
-                // Completed courses are past days OR (today AND past time)
+           
                 sql = "SELECT * FROM courses WHERE is_deleted = FALSE AND (" +
                       "course_date < '" + dateString + "' OR " +
                       "(course_date = '" + dateString + "' AND course_time < '" + timeString + "')" +
@@ -190,14 +186,14 @@ public class ManageCoursesPage extends JPanel {
 
                 JPanel courseCard = createCourseCard(courseId, name, date, time, mode, poster, category);
                 targetPanel.add(courseCard);
-                targetPanel.add(Box.createVerticalStrut(10)); // Add spacing
+                targetPanel.add(Box.createVerticalStrut(10));
             }
             
             if (!foundCourses) {
                  JLabel noCourses = new JLabel("No " + category + " courses found" + (searchTerm.isEmpty() ? "." : " matching '" + searchTerm + "'."));
                  noCourses.setFont(new Font("Segoe UI", Font.ITALIC, 16));
                  noCourses.setForeground(Color.GRAY);
-                 // Center the message
+                
                  targetPanel.add(Box.createVerticalGlue());
                  noCourses.setAlignmentX(Component.CENTER_ALIGNMENT);
                  targetPanel.add(noCourses);
@@ -211,7 +207,7 @@ public class ManageCoursesPage extends JPanel {
 
         targetPanel.revalidate();
         targetPanel.repaint();
-        // Ensure scroll position is reset to top
+       
         SwingUtilities.invokeLater(() -> {
              JScrollPane scroll = (JScrollPane) tabbedPane.getComponentAt(tabbedPane.getSelectedIndex());
              scroll.getVerticalScrollBar().setValue(0);
@@ -220,12 +216,12 @@ public class ManageCoursesPage extends JPanel {
     
     private JPanel createCourseCard(String courseId, String name, Date date, Time time, String mode, String poster, String category) {
         JPanel courseCard = new JPanel(new BorderLayout(10, 0));
-        courseCard.setMaximumSize(new Dimension(750, 100)); // Standard size for admin view
+        courseCard.setMaximumSize(new Dimension(750, 100));
         courseCard.setBorder(BorderFactory.createLineBorder(primary, 1));
         courseCard.setBackground(Color.WHITE);
-        courseCard.setAlignmentX(Component.CENTER_ALIGNMENT); // Center card in BoxLayout
+        courseCard.setAlignmentX(Component.CENTER_ALIGNMENT); 
         
-        // Conditional cursor for clickable items
+   
         if (!category.equals("upcoming") && !category.equals("deleted")) {
              courseCard.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         } else {
@@ -235,13 +231,12 @@ public class ManageCoursesPage extends JPanel {
         SimpleDateFormat displayDateFormat = new SimpleDateFormat("MMM dd, yyyy");
         SimpleDateFormat displayTimeFormat = new SimpleDateFormat("hh:mm a");
         
-        // --- Leftmost Panel: Poster Thumbnail ---
         JLabel lblPoster = new JLabel();
         lblPoster.setPreferredSize(new Dimension(80, 80));
         lblPoster.setHorizontalAlignment(SwingConstants.CENTER);
         lblPoster.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         
-        // Load and scale poster
+  
         if (poster != null && !poster.trim().isEmpty() && !poster.equals("No file chosen")) {
             File posterFile = new File("posters/" + poster);
             if (posterFile.exists()) {
@@ -286,15 +281,13 @@ public class ManageCoursesPage extends JPanel {
         
         infoPanelWrapper.add(infoPanel, BorderLayout.CENTER);
         courseCard.add(infoPanelWrapper, BorderLayout.CENTER);
-
-
-        // --- Right Panel: Actions or Arrow ---
+        
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 5));
         rightPanel.setOpaque(false);
         rightPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
         
         if (category.equals("upcoming")) {
-            // Edit and Archive (Delete logic) buttons for upcoming courses
+           
             JButton btnEdit = new JButton("Edit");
             styleActionButton(btnEdit, new Color(243, 156, 18), new Color(211, 84, 0));
             btnEdit.setPreferredSize(new Dimension(70, 25));
@@ -311,13 +304,13 @@ public class ManageCoursesPage extends JPanel {
             rightPanel.add(btnDelete);
             
         } else if (category.equals("deleted")) {
-            // Restore and Delete Permanently options
+   
             JButton btnRestore = new JButton("Restore");
             styleActionButton(btnRestore, new Color(46, 204, 113), new Color(39, 174, 96));
             btnRestore.setPreferredSize(new Dimension(80, 25));
             btnRestore.addActionListener(e -> restoreCourse(courseId));
             
-            // Delete Permanently option
+       
             JButton btnDeletePerm = new JButton("Delete Permanently");
             styleActionButton(btnDeletePerm, new Color(192, 57, 43), new Color(150, 40, 30));
             btnDeletePerm.setPreferredSize(new Dimension(140, 25));
@@ -327,7 +320,7 @@ public class ManageCoursesPage extends JPanel {
             rightPanel.add(btnDeletePerm);
             
         } else {
-            // Default arrow for completed courses (Clickable for details)
+          
             JLabel arrow = new JLabel("▶");
             arrow.setFont(new Font("Segoe UI", Font.BOLD, 18));
             arrow.setForeground(primary);
@@ -339,11 +332,11 @@ public class ManageCoursesPage extends JPanel {
         
         courseCard.add(rightPanel, BorderLayout.EAST);
         
-        // Mouse listener for highlighting and navigation (excluding button clicks)
+       
         courseCard.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                // Ensure click wasn't on a button and only navigate for completed courses
+            
                 if (! (e.getSource() instanceof JButton) && !category.equals("upcoming") && !category.equals("deleted")) {
                     main.showAdminCourseDetailsPage(courseId);
                 }
@@ -361,7 +354,7 @@ public class ManageCoursesPage extends JPanel {
         return courseCard;
     }
 
-    // --- Action Methods ---
+   
 
     private void archiveCourse(String courseId) {
         int confirm = JOptionPane.showConfirmDialog(this,
@@ -375,7 +368,7 @@ public class ManageCoursesPage extends JPanel {
                 pst.setString(1, courseId);
                 if (pst.executeUpdate() > 0) {
                     JOptionPane.showMessageDialog(this, "Course successfully archived.", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    refresh(); // Refresh the current tab
+                    refresh(); 
                 } else {
                     JOptionPane.showMessageDialog(this, "Course ID not found.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -399,7 +392,7 @@ public class ManageCoursesPage extends JPanel {
                 if (pst.executeUpdate() > 0) {
                     JOptionPane.showMessageDialog(this, "Course successfully restored.", "Success", JOptionPane.INFORMATION_MESSAGE);
                     refresh();
-                    // Optional: Change to the Upcoming/Completed tab after restore
+                 
                     tabbedPane.setSelectedIndex(0); 
                 } else {
                     JOptionPane.showMessageDialog(this, "Course ID not found.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -420,37 +413,35 @@ public class ManageCoursesPage extends JPanel {
             Connection conn = null;
             try {
                 conn = DBConnection.getConnection();
-                conn.setAutoCommit(false); // Start transaction
+                conn.setAutoCommit(false); 
 
-                // 1. Delete dependent records (Results, Attendance, Registrations)
-                
-                // CRITICAL STEP 1: Delete from course_results (to prevent certificate eligibility issues)
+            
                 try (PreparedStatement pstDeleteResults = conn.prepareStatement("DELETE FROM course_results WHERE course_id = ?")) {
                     pstDeleteResults.setString(1, courseId);
                     pstDeleteResults.executeUpdate();
                 }
 
-                // CRITICAL STEP 2: Delete from attendance
+          
                 try (PreparedStatement pstDeleteAttendance = conn.prepareStatement("DELETE FROM attendance WHERE course_id = ?")) {
                     pstDeleteAttendance.setString(1, courseId);
                     pstDeleteAttendance.executeUpdate();
                 }
 
-                // CRITICAL STEP 3: Delete from course_registrations
+                
                 try (PreparedStatement pstDeleteRegs = conn.prepareStatement("DELETE FROM course_registrations WHERE course_id = ?")) {
                     pstDeleteRegs.setString(1, courseId);
                     pstDeleteRegs.executeUpdate();
                 }
                 
-                // 4. Delete the course itself
+                
                 try (PreparedStatement pstDeleteCourse = conn.prepareStatement("DELETE FROM courses WHERE course_id = ?")) {
                     pstDeleteCourse.setString(1, courseId);
                     int rowsDeleted = pstDeleteCourse.executeUpdate();
 
                     if (rowsDeleted > 0) {
-                        conn.commit(); // Commit transaction on success
+                        conn.commit(); 
                         JOptionPane.showMessageDialog(this, "Course permanently deleted.", "Success", JOptionPane.INFORMATION_MESSAGE);
-                        refresh(); // Refresh the Deleted tab
+                        refresh(); 
                     } else {
                         conn.rollback();
                         JOptionPane.showMessageDialog(this, "Course ID not found for permanent deletion.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -461,7 +452,7 @@ public class ManageCoursesPage extends JPanel {
                     try {
                         conn.rollback();
                     } catch (SQLException rbEx) {
-                        // ignored
+                        
                     }
                 }
                 JOptionPane.showMessageDialog(this, "Database error during permanent deletion: " + ex.getMessage() + ". Transaction aborted.", "Database Error", JOptionPane.ERROR_MESSAGE);
@@ -472,26 +463,21 @@ public class ManageCoursesPage extends JPanel {
                         conn.setAutoCommit(true);
                         conn.close();
                     } catch (SQLException closeEx) {
-                        // ignored
+                       
                     }
                 }
             }
         }
     }
     
-    // 🔑 NEW METHOD: Clears the search field and resets the view
     public void clearFields() {
         txtSearch.setText("");
-        // Revert to default view (Upcoming tab)
+      
         tabbedPane.setSelectedIndex(0); 
-        refresh(); // Reloads the content for the default tab
+        refresh(); 
     }
     
-    // --- Utility Methods ---
 
-    /**
-     * Public method to force a refresh of the currently displayed tab using the current search term.
-     */
     public void refresh() {
         int index = tabbedPane.getSelectedIndex();
         String searchTerm = txtSearch.getText();
@@ -535,3 +521,4 @@ public class ManageCoursesPage extends JPanel {
     }
 
 }
+
