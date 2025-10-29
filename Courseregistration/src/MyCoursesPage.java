@@ -16,18 +16,17 @@ public class MyCoursesPage extends JPanel {
     
     private Color primary = new Color(52, 152, 219);
     private Color danger = new Color(231, 76, 60);
-    private final long ONE_HOUR_MS = 60 * 60 * 1000; // Used to define when a course is "finished"
-
+    private final long ONE_HOUR_MS = 60 * 60 * 1000;
     public MyCoursesPage(MainFrame main, String studentAdmissionNo) {
         this.main = main;
         this.studentAdmissionNo = studentAdmissionNo;
         setLayout(new BorderLayout());
         initUI();
-        // loadCourses() is called here implicitly during instantiation
+       
     }
 
     private void initUI() {
-        // (Header setup remains the same)
+      
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(primary);
         header.setPreferredSize(new Dimension(800, 60));
@@ -39,7 +38,7 @@ public class MyCoursesPage extends JPanel {
         header.add(lblTitle, BorderLayout.WEST);
         add(header, BorderLayout.NORTH);
 
-        // ===== Tabs and Scrollable Content =====
+       
         JTabbedPane tabs = new JTabbedPane();
         tabs.setFont(new Font("Segoe UI", Font.BOLD, 14));
         
@@ -55,7 +54,7 @@ public class MyCoursesPage extends JPanel {
 
         add(tabs, BorderLayout.CENTER);
 
-        // ===== Back Button at Bottom =====
+       
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JButton btnBack = new JButton("Back to Dashboard");
         styleButton(btnBack, primary, primary.darker(), new Dimension(180, 35));
@@ -72,13 +71,12 @@ public class MyCoursesPage extends JPanel {
         return panel;
     }
 
-    // --- Course Loading Logic ---
-
+   
     public void loadCourses() {
         upcomingCoursesPanel.removeAll();
         completedCoursesPanel.removeAll();
 
-        // 🔑 CORRECTED SQL: Uses 'course_registrations' and filters by 'is_cancelled = FALSE'
+        
         String sql = "SELECT c.course_id, c.course_name, c.course_date, c.course_time, c.mode, c.poster " +
                      "FROM courses c " +
                      "JOIN course_registrations cr ON c.course_id = cr.course_id " +
@@ -104,26 +102,25 @@ public class MyCoursesPage extends JPanel {
                 String mode = rs.getString("mode");
                 String poster = rs.getString("poster");
                 
-                // Combine date and time to get the exact course end time (estimated 1 hour duration)
+              
                 Calendar courseCal = Calendar.getInstance();
                 courseCal.setTime(courseDate);
                 courseCal.set(Calendar.HOUR_OF_DAY, courseTime.getHours());
                 courseCal.set(Calendar.MINUTE, courseTime.getMinutes());
                 
-                // Use the start time for sorting, but for determining "Completed," 
-                // check if the current time is past the course time + 1 hour buffer.
+               
                 long courseEndTimestamp = courseCal.getTimeInMillis() + ONE_HOUR_MS;
                 
                 boolean isUpcoming = currentTime.getTime() < courseEndTimestamp;
 
-                // Determine final status only for completed (past) courses
+                
                 String finalStatus = "N/A";
                 if (!isUpcoming) {
-                    // Check attendance status only if the course has definitely finished
+                   
                     finalStatus = getCourseAttendanceStatus(conn, courseId, studentAdmissionNo);
                 }
 
-                // Create the card
+              
                 JPanel courseCard = createCourseCard(courseId, courseName, courseDate, courseTime, mode, poster, isUpcoming, finalStatus);
                 
                 if (isUpcoming) {
@@ -152,14 +149,9 @@ public class MyCoursesPage extends JPanel {
         completedCoursesPanel.repaint();
     }
     
-    // (getCourseAttendanceStatus, addNoCourseMessage, createCourseCard, and styleButton methods remain the same)
-    
-    /**
-     * Checks attendance for a finished course to determine if status is COMPLETED or ABSENT.
-     * Assumes one 'Present' is sufficient for 'Completed'.
-     */
+
     private String getCourseAttendanceStatus(Connection conn, String courseId, String admissionNo) throws SQLException {
-        // Check for any 'Present' record
+      
         String sql = "SELECT COUNT(*) FROM attendance WHERE course_id = ? AND admission_no = ? AND status = 'Present'";
         try (PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setString(1, courseId);
@@ -170,7 +162,7 @@ public class MyCoursesPage extends JPanel {
                 return "COMPLETED";
             }
         }
-        // If no 'Present' records were found, the student is marked as ABSENT
+     
         return "ABSENT";
     }
 
@@ -182,9 +174,7 @@ public class MyCoursesPage extends JPanel {
         panel.add(lblMessage);
     }
 
-    /**
-     * Creates a visually appealing course card.
-     */
+   
     private JPanel createCourseCard(String courseId, String courseName, Date courseDate, Time courseTime, String mode, String poster, boolean isUpcoming, String finalStatus) {
         JPanel card = new JPanel(new BorderLayout(15, 0));
         card.setMaximumSize(new Dimension(750, 100));
@@ -196,13 +186,13 @@ public class MyCoursesPage extends JPanel {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy");
         SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm a");
 
-        // --- Left: Poster Thumbnail ---
+     
         JLabel lblPoster = new JLabel();
         lblPoster.setPreferredSize(new Dimension(80, 80));
         lblPoster.setHorizontalAlignment(SwingConstants.CENTER);
         lblPoster.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         
-        // Load and scale poster
+     
         if (poster != null && !poster.trim().isEmpty() && !poster.equals("No file chosen")) {
             File posterFile = new File("posters/" + poster);
             if (posterFile.exists()) {
@@ -219,7 +209,7 @@ public class MyCoursesPage extends JPanel {
         }
         card.add(lblPoster, BorderLayout.WEST);
 
-        // --- Center: Info ---
+      
         JPanel infoPanel = new JPanel(new GridLayout(3, 1));
         infoPanel.setOpaque(false);
         JLabel lblName = new JLabel("<html><b>" + courseName + "</b></html>");
@@ -230,7 +220,7 @@ public class MyCoursesPage extends JPanel {
         infoPanel.add(lblMode);
         card.add(infoPanel, BorderLayout.CENTER);
 
-        // --- Right: Status/Arrow Indicator ---
+      
         JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 15));
         statusPanel.setOpaque(false);
         
@@ -239,25 +229,25 @@ public class MyCoursesPage extends JPanel {
             lblStatus = new JLabel("UPCOMING");
             lblStatus.setForeground(primary);
         } else {
-            // Set status based on finalStatus (ABSENT or COMPLETED)
+        
             lblStatus = new JLabel(finalStatus);
             if (finalStatus.equals("ABSENT")) {
-                 lblStatus.setForeground(danger); // Red for absent
+                 lblStatus.setForeground(danger);
             } else {
-                 lblStatus.setForeground(new Color(39, 174, 96)); // Green for completed
+                 lblStatus.setForeground(new Color(39, 174, 96));
             }
         }
         lblStatus.setFont(new Font("Segoe UI", Font.BOLD, 14));
         statusPanel.add(lblStatus);
         
-        // Add a simple indicator that it is clickable
+       
         JLabel lblArrow = new JLabel(" > ");
         lblArrow.setFont(new Font("Segoe UI", Font.BOLD, 18));
         statusPanel.add(lblArrow);
         
         card.add(statusPanel, BorderLayout.EAST);
         
-        // Add mouse listener to navigate to the registered details page
+      
         card.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -268,8 +258,7 @@ public class MyCoursesPage extends JPanel {
         return card;
     }
     
-    // --- Utility Methods ---
-
+   
     private void styleButton(JButton b, Color bg, Color hover, Dimension size) {
         b.setBackground(bg);
         b.setForeground(Color.WHITE);
@@ -286,4 +275,5 @@ public class MyCoursesPage extends JPanel {
             public void mouseExited(java.awt.event.MouseEvent e) { b.setBackground(bg); }
         });
     }
+
 }
