@@ -20,9 +20,9 @@ public class Dashboard extends JPanel {
 
     private void initUI() {
         setLayout(new BorderLayout());
-        setBackground(new Color(245, 247, 250)); // Light background for contrast
+        setBackground(new Color(245, 247, 250)); 
 
-        // ===== Top Header (Unchanged for welcome message) =====
+  
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(primary);
         header.setPreferredSize(new Dimension(800, 60));
@@ -33,7 +33,7 @@ public class Dashboard extends JPanel {
         title.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
 
         JButton btnLogout = new JButton("Logout");
-        styleLogoutButton(btnLogout, danger, danger.darker()); // Use red styling
+        styleLogoutButton(btnLogout, danger, danger.darker()); 
         btnLogout.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(this,
                     "Are you sure you want to log out?",
@@ -47,7 +47,7 @@ public class Dashboard extends JPanel {
         header.add(btnLogout, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
 
-        // ===== Center Navigation Panel (Admin Page Style) =====
+        
         JPanel centerContainer = new JPanel(new GridBagLayout());
         centerContainer.setBackground(new Color(245, 247, 250));
         centerContainer.setBorder(BorderFactory.createEmptyBorder(40, 50, 40, 50));
@@ -56,7 +56,7 @@ public class Dashboard extends JPanel {
         gbc.insets = new Insets(15, 15, 15, 15);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Row 1
+       
         JButton btnProfile = new JButton(" View Profile");
         styleLargeNavButton(btnProfile, primary, primaryDark);
         gbc.gridx = 0;
@@ -69,7 +69,7 @@ public class Dashboard extends JPanel {
         gbc.gridy = 0;
         centerContainer.add(btnMyCourses, gbc);
 
-        // Row 2
+        
         JButton btnAvailableCourses = new JButton(" Available Courses");
         styleLargeNavButton(btnAvailableCourses, primary, primaryDark);
         gbc.gridx = 0;
@@ -84,7 +84,7 @@ public class Dashboard extends JPanel {
 
         add(centerContainer, BorderLayout.CENTER);
 
-        // ===== Button Actions (Unchanged) =====
+        
         btnProfile.addActionListener(e -> main.showProfilePage(admissionNo));
 
         btnMyCourses.addActionListener(e -> {
@@ -103,9 +103,7 @@ public class Dashboard extends JPanel {
         });
     }
 
-    /**
-     * Replaces styleSmallNavButton with a larger style, similar to AdminPage.styleButton.
-     */
+    
     private void styleLargeNavButton(JButton b, Color primary, Color primaryDark) {
         b.setBackground(primary);
         b.setForeground(Color.WHITE);
@@ -113,7 +111,7 @@ public class Dashboard extends JPanel {
         b.setFocusPainted(false);
         b.setBorderPainted(false);
         b.setOpaque(true);
-        b.setPreferredSize(new Dimension(220, 45)); // Large size for dashboard buttons
+        b.setPreferredSize(new Dimension(220, 45)); 
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         b.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
@@ -123,9 +121,7 @@ public class Dashboard extends JPanel {
         });
     }
 
-    /**
-     * Updated Logout button style to be consistent.
-     */
+   
     private void styleLogoutButton(JButton b, Color bg, Color hover) {
         b.setFocusPainted(false);
         b.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -143,3 +139,4 @@ public class Dashboard extends JPanel {
     }
 
 }
+
