@@ -16,7 +16,7 @@ public class CourseAttendancePage extends JPanel {
     private JLabel lblStatus;
     private Date attendanceDate;
     private String currentCourseId = null;
-    private String currentCourseName = null; // Store name for display
+    private String currentCourseName = null;
 
     private Color primary = new Color(52, 152, 219);
     private Color primaryDark = new Color(41, 128, 185);
@@ -32,12 +32,12 @@ public class CourseAttendancePage extends JPanel {
     }
 
     private void initUI() {
-        // ... (Top Panel setup remains the same) ...
+       
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(primary);
         topPanel.setPreferredSize(new Dimension(800, 110));
 
-        // 1. Title and Date
+       
         JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 50, 10));
         titlePanel.setBackground(primary);
         JLabel lblTitle = new JLabel("Course Attendance Recording");
@@ -52,7 +52,7 @@ public class CourseAttendancePage extends JPanel {
         
         topPanel.add(titlePanel, BorderLayout.NORTH);
 
-        // 2. Search Bar
+        
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         searchPanel.setBackground(primary);
         
@@ -71,14 +71,13 @@ public class CourseAttendancePage extends JPanel {
         topPanel.add(searchPanel, BorderLayout.CENTER);
         add(topPanel, BorderLayout.NORTH);
 
-        // ===== Center Panel (Table) =====
-        // 🎯 MODIFIED COLUMNS: Added Class No
+      
         String[] columns = {"Admission No", "Full Name", "Class No", "Status"};
         
         model = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                // Status column is now column index 3
+               
                 return column == 3; 
             }
         };
@@ -87,7 +86,7 @@ public class CourseAttendancePage extends JPanel {
         table.setRowHeight(30);
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
         
-        // Status column editor is still column 3
+       
         JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Present", "Absent"});
         table.getColumnModel().getColumn(3).setCellEditor(new DefaultCellEditor(statusCombo));
         
@@ -95,7 +94,7 @@ public class CourseAttendancePage extends JPanel {
         scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         add(scrollPane, BorderLayout.CENTER);
 
-        // ===== Bottom Panel (Save, Finalize, and Back) =====
+       
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
         bottomPanel.setBackground(getBackground());
         
@@ -125,9 +124,7 @@ public class CourseAttendancePage extends JPanel {
         add(bottomPanel, BorderLayout.SOUTH);
     }
     
-    /**
-     * Clears search field and resets the table and status.
-     */
+   
     public void clearFields() {
         txtCourseSearch.setText("");
         model.setRowCount(0);
@@ -136,7 +133,7 @@ public class CourseAttendancePage extends JPanel {
         lblStatus.setText("Please load a course to record attendance.");
     }
 
-    // --- NEW SEARCH AND SELECTION LOGIC ---
+   
 
     private void searchCoursesForSelection(String searchTerm) {
         if (searchTerm.trim().isEmpty()) {
@@ -149,7 +146,7 @@ public class CourseAttendancePage extends JPanel {
         lblStatus.setText("Searching for '" + searchTerm + "'...");
 
         try (Connection conn = DBConnection.getConnection()) {
-            // Case-Insensitive Search: Use LIKE and LOWER() to find all active courses matching the term
+           
             String sql = "SELECT course_id, course_name FROM courses WHERE is_deleted = FALSE AND (LOWER(course_id) LIKE ? OR LOWER(course_name) LIKE ?)";
             PreparedStatement pst = conn.prepareStatement(sql);
             
@@ -168,10 +165,10 @@ public class CourseAttendancePage extends JPanel {
                 lblStatus.setText("Error: Course not found or archived.");
                 JOptionPane.showMessageDialog(this, "No active course found matching the search term.", "Course Not Found", JOptionPane.INFORMATION_MESSAGE);
             } else if (courseOptions.size() == 1) {
-                // Single course found, load automatically
+                
                 selectCourse(courseOptions.firstElement().id, courseOptions.firstElement().name);
             } else {
-                // Multiple courses found, open selection dialog
+              
                 showCourseSelectionDialog(courseOptions);
             }
         } catch (SQLException ex) {
@@ -217,7 +214,7 @@ public class CourseAttendancePage extends JPanel {
         loadStudentsForAttendance();
     }
     
-    // --- Data Loading and Saving ---
+  
     
     private void loadStudentsForAttendance() {
         if (currentCourseId == null) return;
@@ -225,7 +222,7 @@ public class CourseAttendancePage extends JPanel {
         model.setRowCount(0);
 
         try (Connection conn = DBConnection.getConnection();
-             // 🎯 MODIFIED SQL: Selected Class No (s.class_no)
+            
              PreparedStatement pst = conn.prepareStatement(
                  "SELECT s.admission_no, s.full_name, s.class_no FROM students s " +
                  "JOIN course_registrations cr ON s.admission_no = cr.student_admission_no " +
@@ -238,15 +235,15 @@ public class CourseAttendancePage extends JPanel {
             while (rs.next()) {
                 String admissionNo = rs.getString("admission_no");
                 String fullName = rs.getString("full_name");
-                String classNo = rs.getString("class_no"); // Get Class No
+                String classNo = rs.getString("class_no"); 
                 
                 String existingStatus = getExistingAttendance(admissionNo, currentCourseId);
                 
-                // Add row: [Admission No, Full Name, Class No, Status]
+              
                 model.addRow(new Object[]{
                     admissionNo,
                     fullName,
-                    classNo, // Add Class No here
+                    classNo, 
                     existingStatus.isEmpty() ? "Present" : existingStatus
                 });
             }
@@ -258,9 +255,7 @@ public class CourseAttendancePage extends JPanel {
         }
     }
     
-    /**
-     * Checks the database for existing attendance record for today.
-     */
+  
     private String getExistingAttendance(String admissionNo, String courseId) {
         String status = "";
         String dateString = new SimpleDateFormat("yyyy-MM-dd").format(attendanceDate);
@@ -297,13 +292,13 @@ public class CourseAttendancePage extends JPanel {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
             
-            // SQL for updating/inserting (UPSERT logic: REPLACE INTO)
+       
             String sql = "REPLACE INTO attendance (course_id, admission_no, date_recorded, status) VALUES (?, ?, ?, ?)";
             PreparedStatement pst = conn.prepareStatement(sql);
 
             for (int i = 0; i < model.getRowCount(); i++) {
                 String admissionNo = (String) model.getValueAt(i, 0);
-                String status = (String) model.getValueAt(i, 3); // Status is now index 3
+                String status = (String) model.getValueAt(i, 3);
 
                 pst.setString(1, currentCourseId);
                 pst.setString(2, admissionNo);
@@ -327,7 +322,7 @@ public class CourseAttendancePage extends JPanel {
                 try {
                     conn.rollback();
                 } catch (SQLException rbEx) {
-                    // ignored
+                    
                 }
             }
             lblStatus.setText("Failed to save attendance. Database error.");
@@ -338,15 +333,13 @@ public class CourseAttendancePage extends JPanel {
                     conn.setAutoCommit(true);
                     conn.close();
                 } catch (SQLException closeEx) {
-                    // ignored
+                   
                 }
             }
         }
     }
     
-    /**
-     * Finalizes course results by checking attendance and updating the course_results table.
-     */
+   
     private void finalizeResults() {
         if (currentCourseId == null) {
             JOptionPane.showMessageDialog(this, "Please load a course first.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -368,12 +361,12 @@ public class CourseAttendancePage extends JPanel {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
             
-            // 1. Select distinct students who have at least one 'Present' record for this course.
+            
             String selectStudentsSql = 
                 "SELECT DISTINCT admission_no FROM attendance " +
                 "WHERE course_id = ? AND status = 'Present'";
             
-            // 2. UPSERT (REPLACE INTO) the certification results table.
+          
             String upsertSql = 
                 "REPLACE INTO course_results (admission_no, course_id, status, completion_date) " +
                 "VALUES (?, ?, 'Completed', CURRENT_DATE())"; 
@@ -410,7 +403,7 @@ public class CourseAttendancePage extends JPanel {
                 try {
                     conn.rollback();
                 } catch (SQLException rbEx) {
-                    // ignored
+                   
                 }
             }
             lblStatus.setText("Database error during finalization.");
@@ -421,13 +414,13 @@ public class CourseAttendancePage extends JPanel {
                     conn.setAutoCommit(true);
                     conn.close();
                 } catch (SQLException closeEx) {
-                    // ignored
+                   
                 }
             }
         }
     }
     
-    // --- Utility Methods ---
+  
 
     private void styleButton(JButton b, Color bg, Color hover, Dimension size) {
         b.setBackground(bg);
@@ -445,7 +438,7 @@ public class CourseAttendancePage extends JPanel {
     }
     
     private void styleSearchButton(JButton b, Color bg, Color hover) {
-        // Special style for the search button
+   
         b.setBackground(bg);
         b.setForeground(Color.BLACK);
         b.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -460,9 +453,7 @@ public class CourseAttendancePage extends JPanel {
         });
     }
     
-    /**
-     * Simple container class for course selection results.
-     */
+  
     private static class CourseOption {
         String id;
         String name;
@@ -472,4 +463,5 @@ public class CourseAttendancePage extends JPanel {
             this.name = name;
         }
     }
+
 }
