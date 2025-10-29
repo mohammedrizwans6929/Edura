@@ -9,7 +9,7 @@ import java.util.Vector;
 public class ViewStudentsByCoursePage extends JPanel {
     private MainFrame main;
     
-    // UI Components
+    
     private JTable table;
     private DefaultTableModel model;
     private JTextField txtCourseSearch; 
@@ -26,11 +26,11 @@ public class ViewStudentsByCoursePage extends JPanel {
         Color primary = new Color(52, 152, 219);
         Color primaryDark = new Color(41, 128, 185);
 
-        // Header Panel
+      
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(bgColor);
 
-        // Title
+       
         JLabel lblTitle = new JLabel("View Students by Course", SwingConstants.CENTER);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitle.setForeground(primary);
@@ -38,7 +38,7 @@ public class ViewStudentsByCoursePage extends JPanel {
         
         headerPanel.add(lblTitle, BorderLayout.NORTH);
 
-        // --- Search and Selected Course Panel ---
+        
         JPanel searchSelectionPanel = new JPanel(new GridBagLayout());
         searchSelectionPanel.setBackground(bgColor);
         searchSelectionPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 10, 20));
@@ -47,7 +47,7 @@ public class ViewStudentsByCoursePage extends JPanel {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // 1. Search Field
+       
         gbc.gridx = 0; gbc.gridy = 0; 
         searchSelectionPanel.add(new JLabel("Search Course (ID/Name):"), gbc);
         
@@ -56,13 +56,13 @@ public class ViewStudentsByCoursePage extends JPanel {
         txtCourseSearch.setPreferredSize(new Dimension(250, 30));
         searchSelectionPanel.add(txtCourseSearch, gbc);
         
-        // 2. Search Button
+      
         gbc.gridx = 2; gbc.gridy = 0; gbc.weightx = 0;
         btnSearchCourse = new JButton("Search");
         styleButton(btnSearchCourse, primary, primaryDark, new Dimension(90, 30));
         searchSelectionPanel.add(btnSearchCourse, gbc);
         
-        // 3. Status Label (Course ID)
+        
         gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 3; gbc.anchor = GridBagConstraints.WEST;
         lblSelectedCourseId = new JLabel("Selected Course: None");
         lblSelectedCourseId.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -72,7 +72,7 @@ public class ViewStudentsByCoursePage extends JPanel {
         headerPanel.add(searchSelectionPanel, BorderLayout.CENTER);
         add(headerPanel, BorderLayout.NORTH);
 
-        // --- Table Setup ---
+      
         String[] columns = {"Admission No", "Full Name", "Email", "Phone", "Semester", "Batch", "Department", "Class No"};
         
         model = new DefaultTableModel(columns, 0) {
@@ -93,7 +93,7 @@ public class ViewStudentsByCoursePage extends JPanel {
         scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         add(scrollPane, BorderLayout.CENTER);
 
-        // --- Button Panel ---
+     
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
         btnPanel.setBackground(bgColor);
         
@@ -107,7 +107,7 @@ public class ViewStudentsByCoursePage extends JPanel {
         btnPanel.add(btnBack);
         add(btnPanel, BorderLayout.SOUTH);
 
-        // --- Event Handlers ---
+        
         btnBack.addActionListener(e -> {
             clearFields(); 
             main.showPage("admin");
@@ -115,15 +115,13 @@ public class ViewStudentsByCoursePage extends JPanel {
         
         btnPrint.addActionListener(e -> printTable());
         
-        // Action to trigger course search
+        
         ActionListener searchAction = e -> searchCoursesForSelection(txtCourseSearch.getText());
         btnSearchCourse.addActionListener(searchAction);
         txtCourseSearch.addActionListener(searchAction); 
     }
 
-    /**
-     * Clears search field and resets the table view.
-     */
+   
     public void clearFields() {
         txtCourseSearch.setText("");
         lblSelectedCourseId.setText("Selected Course: None");
@@ -131,24 +129,20 @@ public class ViewStudentsByCoursePage extends JPanel {
         model.setRowCount(0);
     }
     
-    // --- New Search and Selection Logic ---
-
-    /**
-     * Searches for courses matching the term and opens a dialog for selection.
-     */
+   
     private void searchCoursesForSelection(String searchTerm) {
         if (searchTerm.trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please enter a Course ID or Name to search.", "Search Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        // Clear previous results while searching
+       
         lblSelectedCourseId.setText("Searching...");
         model.setRowCount(0);
         currentCourseId = null;
 
         try (Connection conn = DBConnection.getConnection()) {
-            // Case-Insensitive Search: Use LIKE and LOWER() to find all active courses matching the term
+           
             String sql = "SELECT course_id, course_name FROM courses WHERE is_deleted = FALSE AND (LOWER(course_id) LIKE ? OR LOWER(course_name) LIKE ?)";
             PreparedStatement pst = conn.prepareStatement(sql);
             
@@ -160,7 +154,7 @@ public class ViewStudentsByCoursePage extends JPanel {
             
             Vector<CourseOption> courseOptions = new Vector<>();
             while (rs.next()) {
-                // Store results as objects for the dialog
+              
                 courseOptions.add(new CourseOption(rs.getString("course_id"), rs.getString("course_name")));
             }
 
@@ -168,10 +162,10 @@ public class ViewStudentsByCoursePage extends JPanel {
                 lblSelectedCourseId.setText("Selected Course: None");
                 JOptionPane.showMessageDialog(this, "No active course found matching the search term.", "Course Not Found", JOptionPane.INFORMATION_MESSAGE);
             } else if (courseOptions.size() == 1) {
-                // If only one course found, select it automatically
+               
                 selectCourse(courseOptions.firstElement().id, courseOptions.firstElement().name);
             } else {
-                // Multiple courses found, open selection dialog
+               
                 showCourseSelectionDialog(courseOptions);
             }
         } catch (SQLException ex) {
@@ -180,11 +174,9 @@ public class ViewStudentsByCoursePage extends JPanel {
         }
     }
     
-    /**
-     * Shows a dialog allowing the admin to select one course from the list.
-     */
+    
     private void showCourseSelectionDialog(Vector<CourseOption> courseOptions) {
-        // Convert Vector of objects to array of display strings
+        
         String[] displayOptions = courseOptions.stream()
             .map(c -> c.id + " - " + c.name)
             .toArray(String[]::new);
@@ -200,7 +192,7 @@ public class ViewStudentsByCoursePage extends JPanel {
         );
 
         if (selectedValue != null) {
-            // Find the selected CourseOption object using the display string's ID
+           
             String selectedId = selectedValue.substring(0, selectedValue.indexOf(" - "));
             CourseOption selectedCourse = courseOptions.stream()
                 .filter(c -> c.id.equals(selectedId))
@@ -215,18 +207,14 @@ public class ViewStudentsByCoursePage extends JPanel {
         }
     }
     
-    /**
-     * Sets the selected course ID and triggers student roster load.
-     */
+  
     private void selectCourse(String courseId, String courseName) {
         this.currentCourseId = courseId;
         lblSelectedCourseId.setText("Selected Course: " + courseName + " (" + courseId + ")");
         loadStudents();
     }
     
-    /**
-     * Loads students registered for the currently selected course ID.
-     */
+   
     private void loadStudents() {
         model.setRowCount(0);
 
@@ -259,8 +247,7 @@ public class ViewStudentsByCoursePage extends JPanel {
                 });
                 studentCount++;
             }
-            
-            // Update the status label with the count
+          
             String currentLabel = lblSelectedCourseId.getText();
             lblSelectedCourseId.setText(currentLabel.replaceAll("\\s*\\([^)]*\\)$", "") + " (" + studentCount + " Students)");
             
@@ -274,7 +261,7 @@ public class ViewStudentsByCoursePage extends JPanel {
         }
     }
 
-    // --- Printing Logic ---
+   
 
     private void printTable() {
         if (model.getRowCount() == 0) {
@@ -302,8 +289,7 @@ public class ViewStudentsByCoursePage extends JPanel {
         }
     }
 
-    // --- Utility Methods ---
-
+  
     private void styleButton(JButton b, Color primary, Color primaryDark, Dimension size){
         b.setBackground(primary);
         b.setForeground(Color.WHITE);
@@ -318,10 +304,7 @@ public class ViewStudentsByCoursePage extends JPanel {
             public void mouseExited(java.awt.event.MouseEvent e){ b.setBackground(primary);}
         });
     }
-    
-    /**
-     * Simple container class for course selection results.
-     */
+  
     private static class CourseOption {
         String id;
         String name;
@@ -331,4 +314,5 @@ public class ViewStudentsByCoursePage extends JPanel {
             this.name = name;
         }
     }
+
 }
