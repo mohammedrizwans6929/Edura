@@ -6,7 +6,7 @@ import java.sql.*;
 public class AdminLogin extends JPanel {
     private JTextField txtUser;
     private JPasswordField txtPass;
-    private JButton btnLogin;   // ⬅ Moved to a field for easier reference
+    private JButton btnLogin;  
     private MainFrame main;
 
     public AdminLogin(MainFrame main) {
@@ -19,7 +19,7 @@ public class AdminLogin extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.CENTER;
 
-        // Title
+     
         JLabel lblTitle = new JLabel("Admin Login", SwingConstants.CENTER);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitle.setForeground(new Color(52, 152, 219));
@@ -30,7 +30,7 @@ public class AdminLogin extends JPanel {
         gbc.gridwidth = 1;
         gbc.insets = new Insets(6, 6, 6, 6);
 
-        // Username Row
+        
         gbc.gridy = 1; gbc.gridx = 0;
         gbc.anchor = GridBagConstraints.EAST;
         add(new JLabel("Username:"), gbc);
@@ -40,7 +40,7 @@ public class AdminLogin extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
         add(txtUser, gbc);
 
-        // Password Row
+      
         gbc.gridy = 2; gbc.gridx = 0;
         gbc.anchor = GridBagConstraints.EAST;
         add(new JLabel("Password:"), gbc);
@@ -50,7 +50,7 @@ public class AdminLogin extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
         add(txtPass, gbc);
 
-        // Login Button
+  
         btnLogin = new JButton("Login");
         styleButton(btnLogin);
         gbc.gridy = 3; gbc.gridx = 0; gbc.gridwidth = 2;
@@ -58,22 +58,21 @@ public class AdminLogin extends JPanel {
         gbc.insets = new Insets(15, 6, 6, 6);
         add(btnLogin, gbc);
 
-        // Back Button
+       
         JButton btnBack = new JButton("Back to Home");
         styleButton(btnBack);
         gbc.gridy = 4;
         gbc.insets = new Insets(6, 6, 20, 6);
         add(btnBack, gbc);
 
-        // Actions
+       
         btnLogin.addActionListener(e -> doLogin());
         btnBack.addActionListener(e -> {
             clearFields();
             main.showPage("welcome");
         });
 
-        // ✅ Pressing Enter anywhere triggers Login
-        // We use SwingUtilities.getRootPane to set default button
+       
         SwingUtilities.invokeLater(() -> {
             JRootPane rootPane = SwingUtilities.getRootPane(this);
             if (rootPane != null) {
@@ -160,4 +159,5 @@ public class AdminLogin extends JPanel {
         });
     }
 }
+
 
