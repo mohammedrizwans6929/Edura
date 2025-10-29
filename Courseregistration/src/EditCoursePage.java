@@ -7,7 +7,7 @@ import java.sql.*;
 public class EditCoursePage extends JPanel {
     private MainFrame main;
     private String courseId;
-    private ManageCoursesPage parentPage; // 🔴 ADDED: Reference to the parent page
+    private ManageCoursesPage parentPage; 
 
     private JTextField txtCourseId, txtCourseName, txtDate, txtTime, txtMode, txtCoordinator1, txtCoordinator2;
     private JTextArea txtDescription;
@@ -94,25 +94,25 @@ public class EditCoursePage extends JPanel {
         formPanel.add(txtDate, gbc);
         y++;
 
-        // --- Time ---
+        
         gbc.gridx = 0; gbc.gridy = y;
-        formPanel.add(new JLabel("Time (HH:MM:SS):"), gbc); // Added format hint
+        formPanel.add(new JLabel("Time (HH:MM:SS):"), gbc); 
         txtTime = new JTextField();
         styleField(txtTime, fieldFont, fieldSize);
         gbc.gridx = 1;
         formPanel.add(txtTime, gbc);
         y++;
 
-        // --- Mode ---
+       
         gbc.gridx = 0; gbc.gridy = y;
         formPanel.add(new JLabel("Mode:"), gbc);
-        txtMode = new JTextField(); // Consider using a JComboBox if modes are fixed (e.g., Online/Physical)
+        txtMode = new JTextField();
         styleField(txtMode, fieldFont, fieldSize);
         gbc.gridx = 1;
         formPanel.add(txtMode, gbc);
         y++;
 
-        // --- Coordinators ---
+   
         gbc.gridx = 0; gbc.gridy = y;
         formPanel.add(new JLabel("Coordinator 1:"), gbc);
         txtCoordinator1 = new JTextField();
@@ -129,7 +129,7 @@ public class EditCoursePage extends JPanel {
         formPanel.add(txtCoordinator2, gbc);
         y++;
 
-        // --- Poster ---
+      
         gbc.gridx = 0; gbc.gridy = y;
         formPanel.add(new JLabel("Course Poster:"), gbc);
         JPanel imagePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
@@ -145,12 +145,12 @@ public class EditCoursePage extends JPanel {
         formPanel.add(imagePanel, gbc);
         y++;
 
-        // --- Buttons ---
+    
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
         buttonPanel.setBackground(new Color(245, 247, 250));
 
         btnSave = createButton("Save Changes", primary, hover);
-        btnBack = createButton("Back", new Color(108, 122, 137), new Color(86, 96, 107)); // Changed color for back
+        btnBack = createButton("Back", new Color(108, 122, 137), new Color(86, 96, 107)); 
         btnBack.setPreferredSize(new Dimension(100, 32));
 
         buttonPanel.add(btnSave);
@@ -160,9 +160,9 @@ public class EditCoursePage extends JPanel {
         gbc.anchor = GridBagConstraints.CENTER;
         formPanel.add(buttonPanel, gbc);
 
-        // Events
+ 
         btnChooseImage.addActionListener(e -> chooseImage());
-        // 🔴 FIX: Back button should navigate back to the main management page
+      
         btnBack.addActionListener(e -> main.showPage("managecourses"));
         btnSave.addActionListener(e -> saveChanges());
 
@@ -220,22 +220,20 @@ public class EditCoursePage extends JPanel {
                 txtCourseId.setText(rs.getString("course_id"));
                 txtCourseName.setText(rs.getString("course_name"));
                 txtDescription.setText(rs.getString("description"));
-                // NOTE: Using rs.getString directly for date/time assumes the database 
-                // stores them in the exact format required by the JTextFields.
                 txtDate.setText(rs.getString("course_date")); 
                 txtTime.setText(rs.getString("course_time"));
                 txtMode.setText(rs.getString("mode"));
                 txtCoordinator1.setText(rs.getString("coordinator1"));
                 txtCoordinator2.setText(rs.getString("coordinator2"));
 
-                // Assuming the database column is named 'poster' and stores BLOB
+             
                 byte[] imageBytes = rs.getBytes("poster");
                 if (imageBytes != null) {
                     ImageIcon icon = new ImageIcon(new ImageIcon(imageBytes)
                             .getImage().getScaledInstance(200, 130, Image.SCALE_SMOOTH));
                     lblPosterPreview.setIcon(icon);
                     lblPosterPreview.setText("");
-                    // Keep selectedImageFile null unless a new image is chosen
+         
                 }
             }
 
@@ -255,7 +253,7 @@ public class EditCoursePage extends JPanel {
         try {
             conn = DBConnection.getConnection();
             
-            // Build the SQL query dynamically based on whether a new image was selected
+            
             String sql;
             if (selectedImageFile != null) {
                 sql = "UPDATE courses SET course_name=?, description=?, course_date=?, course_time=?, mode=?, coordinator1=?, coordinator2=?, poster=? WHERE course_id=?";
@@ -285,12 +283,12 @@ public class EditCoursePage extends JPanel {
             if (updated > 0) {
                 JOptionPane.showMessageDialog(this, "Course updated successfully! Please refresh list.");
                 
-                // 🔴 FIX: Refresh the parent page list
+             
                 if (parentPage != null) {
                     parentPage.refresh();
                 }
                 
-                // Navigate back to the Manage Courses page
+               
                 main.showPage("managecourses");
             } else {
                 JOptionPane.showMessageDialog(this, "No changes were made!");
@@ -302,3 +300,4 @@ public class EditCoursePage extends JPanel {
         }
     }
 }
+
