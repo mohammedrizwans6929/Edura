@@ -7,7 +7,7 @@ import java.sql.PreparedStatement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import com.toedter.calendar.JDateChooser; 
-import java.sql.SQLException; // Added for clarity in catch block
+import java.sql.SQLException;
 
 public class SignupForm extends JPanel {
     private JTextField txtAdmissionNo, txtRegNo, txtFullName, txtClassNo, txtPhone, txtEmail, txtBatch;
@@ -17,10 +17,10 @@ public class SignupForm extends JPanel {
     private JButton btnSignup, btnHome;
     private JDateChooser dobChooser;
 
-    private MainFrame main; // Ensure MainFrame reference is stored
+    private MainFrame main; 
 
     public SignupForm(MainFrame main) {
-        this.main = main; // Store the reference
+        this.main = main; 
         setLayout(new BorderLayout());
         Color bgColor = new Color(245, 247, 250);
         Color primary = new Color(52, 152, 219);
@@ -33,7 +33,7 @@ public class SignupForm extends JPanel {
         gbc.insets = new Insets(6, 6, 6, 6);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Title
+        
         JLabel lblTitle = new JLabel("Create Profile");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitle.setForeground(primary);
@@ -46,7 +46,7 @@ public class SignupForm extends JPanel {
         gbc.gridwidth = 1;
         gbc.anchor = GridBagConstraints.WEST;
 
-        // Left column
+       
         int row = 1;
         panel.add(new JLabel("Admission Number:"), setGbc(gbc, 0, row));
         txtAdmissionNo = new JTextField(15);
@@ -80,7 +80,7 @@ public class SignupForm extends JPanel {
         styleTextField(txtClassNo);
         panel.add(txtClassNo, setGbc(gbc, 1, row++));
 
-        // Right column
+       
         row = 1;
         panel.add(new JLabel("Department:"), setGbcRight(gbc, 2, row));
         cmbDept = new JComboBox<>(new String[]{
@@ -123,7 +123,7 @@ public class SignupForm extends JPanel {
         styleTextField(txtConfirm);
         panel.add(txtConfirm, setGbcRight(gbc, 3, row++));
 
-        // Security Q & A
+       
         gbc.gridx = 0;
         gbc.gridy = row + 1;
         gbc.gridwidth = 4;
@@ -140,13 +140,13 @@ public class SignupForm extends JPanel {
         styleTextField(txtSecA);
         panel.add(txtSecA, gbc);
 
-        // Buttons
+      
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         btnPanel.setBackground(bgColor);
         btnSignup = new JButton("Sign Up");
         styleButton(btnSignup, primary, primaryDark);
         btnPanel.add(btnSignup);
-        btnHome = new JButton("Back to Options"); // Changed text for clarity
+        btnHome = new JButton("Back to Options");
         styleButton(btnHome, primary, primaryDark);
         btnPanel.add(btnHome);
         gbc.gridy++;
@@ -154,17 +154,15 @@ public class SignupForm extends JPanel {
 
         add(new JScrollPane(panel), BorderLayout.CENTER);
 
-        // Actions
+      
         btnHome.addActionListener(e -> {
-            clearFields(); // Clear fields before navigating away
-            main.showPage("studentoptions"); // Navigate to student options
+            clearFields(); 
+            main.showPage("studentoptions"); 
         });
         btnSignup.addActionListener(e -> saveToDatabase(main));
     }
 
-    /**
-     * Clears all input fields in the form.
-     */
+   
     public void clearFields() {
         txtAdmissionNo.setText("");
         txtRegNo.setText("");
@@ -180,12 +178,12 @@ public class SignupForm extends JPanel {
         
         dobChooser.setDate(null);
         
-        // Reset ComboBoxes
+     
         cmbGender.setSelectedIndex(-1);
         cmbDept.setSelectedIndex(-1);
         cmbSemester.setSelectedIndex(-1);
         
-        // Scroll to top
+       
         JScrollPane scrollPane = (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, this);
         if (scrollPane != null) {
             SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar().setValue(0));
@@ -209,7 +207,7 @@ public class SignupForm extends JPanel {
         String secQ = txtSecQ.getText().trim();
         String secA = txtSecA.getText().trim();
 
-        // Validation (unchanged)
+       
         if (admissionNo.isEmpty() || regNo.isEmpty() || fullName.isEmpty() || gender == null || selectedDate == null
                 || classNo.isEmpty() || dept == null || semester == null || phone.isEmpty() || email.isEmpty()
                 || pass.isEmpty() || confirm.isEmpty() || secQ.isEmpty() || secA.isEmpty()) {
@@ -240,7 +238,7 @@ public class SignupForm extends JPanel {
         SimpleDateFormat dbFormat = new SimpleDateFormat("yyyy-MM-dd");
         String dobForDb = dbFormat.format(selectedDate);
 
-        // Database insertion
+        
         try (Connection conn = DBConnection.getConnection()) {
             String sql = "INSERT INTO students (admission_no, reg_no, full_name, gender, dob, class_no, dept, semester, batch, phone, email, password, security_question, security_answer) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
             PreparedStatement pst = conn.prepareStatement(sql);
@@ -261,11 +259,11 @@ public class SignupForm extends JPanel {
             pst.executeUpdate();
             
             JOptionPane.showMessageDialog(this, "Profile created successfully! You can now log in.");
-            clearFields(); // Clear fields after successful submission
+            clearFields(); 
             main.showPage("login");
         } catch (SQLException ex) {
             ex.printStackTrace();
-            // Check for specific error, like duplicate key violation (Admission No)
+           
             if (ex.getSQLState().startsWith("23")) { 
                  JOptionPane.showMessageDialog(this, "Creation failed: Admission Number or Registration Number already exists.", "Database Error", JOptionPane.ERROR_MESSAGE);
             } else {
@@ -274,7 +272,7 @@ public class SignupForm extends JPanel {
         }
     }
 
-    // Utility methods (unchanged)
+  
     private GridBagConstraints setGbc(GridBagConstraints gbc, int x, int y) {
         GridBagConstraints g = (GridBagConstraints) gbc.clone();
         g.gridx = x;
@@ -330,4 +328,5 @@ public class SignupForm extends JPanel {
             }
         });
     }
+
 }
