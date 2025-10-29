@@ -3,7 +3,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
-import java.util.Date; // Required for formatting sql.Date/Time
+import java.util.Date; 
 
 public class AdminCourseDetailsPage extends JPanel {
     private MainFrame main;
@@ -38,7 +38,7 @@ public class AdminCourseDetailsPage extends JPanel {
         header.add(btnBack, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
 
-        // Content
+     
         JPanel content = new JPanel();
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
@@ -60,7 +60,7 @@ public class AdminCourseDetailsPage extends JPanel {
         content.add(Box.createVerticalStrut(10));
         content.add(lblMode);
 
-        // Buttons
+        
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnEdit = new JButton("Edit");
         JButton btnDelete = new JButton("Delete");
@@ -71,7 +71,7 @@ public class AdminCourseDetailsPage extends JPanel {
 
         btnEdit.addActionListener(e -> {
             JOptionPane.showMessageDialog(this, "Edit function initiated. Navigation to dedicated Edit Page required.");
-            // Logic to launch EditCoursePage/EditCourseDialog would go here
+           
             loadDetails(); 
         });
 
@@ -92,7 +92,7 @@ public class AdminCourseDetailsPage extends JPanel {
     }
 
     private void loadDetails() {
-        // Define formatters for date and time
+       
         SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, MMMM d, yyyy");
         SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a");
 
@@ -102,15 +102,15 @@ public class AdminCourseDetailsPage extends JPanel {
             ResultSet rs = pst.executeQuery();
             
             if (rs.next()) {
-                // Get the SQL Date and Time objects
+               
                 Date sqlDate = rs.getDate("course_date");
                 Date sqlTime = rs.getTime("course_time");
                 
-                // Format the Date and Time for display
+              
                 String formattedDate = (sqlDate != null) ? dateFormat.format(sqlDate) : "N/A";
                 String formattedTime = (sqlTime != null) ? timeFormat.format(sqlTime) : "N/A";
 
-                // Update the JLabels
+             
                 lblName.setText(rs.getString("course_name"));
                 lblDate.setText("📅 Date: " + formattedDate);
                 lblTime.setText("🕒 Time: " + formattedTime);
@@ -130,59 +130,57 @@ public class AdminCourseDetailsPage extends JPanel {
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
-            conn.setAutoCommit(false); // Start transaction for atomicity
+            conn.setAutoCommit(false); 
 
-            // --- Delete Dependent Records (Order is crucial to avoid FK violation) ---
-            
-            // 1. Delete from course_results (Certificates/Final Grades)
+           
             try (PreparedStatement pstDeleteResults = conn.prepareStatement("DELETE FROM course_results WHERE course_id = ?")) {
                 pstDeleteResults.setString(1, courseId);
                 pstDeleteResults.executeUpdate();
             }
 
-            // 2. Delete from attendance (Attendance History)
+          
             try (PreparedStatement pstDeleteAttendance = conn.prepareStatement("DELETE FROM attendance WHERE course_id = ?")) {
                 pstDeleteAttendance.setString(1, courseId);
                 pstDeleteAttendance.executeUpdate();
             }
 
-            // 3. Delete from course_registrations (Active Enrollments)
+           
             try (PreparedStatement pstDeleteRegistrations = conn.prepareStatement(
                     "DELETE FROM course_registrations WHERE course_id = ?")) { 
                 pstDeleteRegistrations.setString(1, courseId);
                 pstDeleteRegistrations.executeUpdate();
             }
 
-            // 4. Delete the course itself from the 'courses' table
+          
             try (PreparedStatement pstDeleteCourse = conn.prepareStatement(
                     "DELETE FROM courses WHERE course_id = ?")) {
                 pstDeleteCourse.setString(1, courseId);
                 pstDeleteCourse.executeUpdate();
             }
 
-            conn.commit(); // Commit the transaction if all deletions succeed
+            conn.commit(); 
             
             JOptionPane.showMessageDialog(this, "Course and all related data deleted successfully! ✔️");
             main.showPage("managecourses");
             
         } catch (SQLException ex) {
-            // Rollback on failure
+           
             if (conn != null) {
                 try {
                     conn.rollback();
                 } catch (SQLException rbEx) {
-                    // ignored
+                    
                 }
             }
             JOptionPane.showMessageDialog(this, "Error deleting course: " + ex.getMessage() + "\nDatabase operation failed and was rolled back.", "Deletion Error", JOptionPane.ERROR_MESSAGE);
         } finally {
-            // Restore default auto-commit and close connection
+          
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
                 } catch (SQLException closeEx) {
-                    // ignored
+                  
                 }
             }
         }
@@ -205,3 +203,4 @@ public class AdminCourseDetailsPage extends JPanel {
     }
 
 }
+
