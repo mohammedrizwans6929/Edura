@@ -6,7 +6,7 @@ public class ProfilePage extends JPanel {
     private MainFrame main;
     private String admissionNo;
 
-    // Labels for all profile data
+    
     private JLabel lblAdmissionNo, lblRegNo, lblFullName, lblGender, lblDob, lblClassNo;
     private JLabel lblDept, lblSemester, lblBatch, lblPhone, lblEmail;
 
@@ -20,14 +20,14 @@ public class ProfilePage extends JPanel {
         Color primary = new Color(52, 152, 219);
         Color primaryDark = new Color(41, 128, 185);
 
-        // ===== TITLE =====
+        
         JLabel lblTitle = new JLabel("My Profile", SwingConstants.CENTER);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblTitle.setForeground(primary);
         lblTitle.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
         add(lblTitle, BorderLayout.NORTH);
 
-        // ===== SCROLLABLE PANEL =====
+        
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
@@ -40,7 +40,7 @@ public class ProfilePage extends JPanel {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Initialize labels
+        
         lblAdmissionNo = new JLabel();
         lblRegNo = new JLabel();
         lblFullName = new JLabel();
@@ -66,7 +66,7 @@ public class ProfilePage extends JPanel {
         addRow(panel, gbc, y++, "Phone:", lblPhone);
         addRow(panel, gbc, y++, "Email:", lblEmail);
 
-        // ===== BUTTONS =====
+        
         JButton btnEdit = new JButton("Edit Profile");
         JButton btnBack = new JButton("Back to Dashboard");
         styleButton(btnEdit, primary, primaryDark);
@@ -78,7 +78,7 @@ public class ProfilePage extends JPanel {
         btnPanel.add(btnBack);
         add(btnPanel, BorderLayout.SOUTH);
 
-        // ===== BUTTON ACTIONS =====
+       
         btnEdit.addActionListener(e -> {
             EditProfilePage editPage = new EditProfilePage(main, admissionNo);
             main.addPage("editprofile", editPage);
@@ -91,7 +91,7 @@ public class ProfilePage extends JPanel {
             main.showPage("dashboard");
         });
 
-        // Load profile data
+       
         loadStudentProfile();
     }
 
@@ -165,4 +165,5 @@ public class ProfilePage extends JPanel {
         });
     }
 }
+
 
