@@ -8,7 +8,7 @@ public class ResetPassword extends JPanel {
     private JPasswordField txtNewPassword, txtConfirmPassword;
     private JLabel lblSecurityQuestion;
     private JButton btnFetch, btnReset, btnBack;
-    private MainFrame main; // navigation reference
+    private MainFrame main;
 
     public ResetPassword(MainFrame main) {
         this.main = main;
@@ -28,7 +28,7 @@ public class ResetPassword extends JPanel {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Title
+       
         JLabel lblTitle = new JLabel("Reset Password");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitle.setForeground(primary);
@@ -42,41 +42,41 @@ public class ResetPassword extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
         int row = 1;
 
-        // Admission number
+        
         panel.add(new JLabel("Admission No:"), setGbc(gbc, 0, row));
         txtAdmissionNo = new JTextField(15);
         styleTextField(txtAdmissionNo);
         panel.add(txtAdmissionNo, setGbc(gbc, 1, row));
         btnFetch = new JButton("Fetch");
         styleButton(btnFetch, primary, primaryDark);
-        panel.add(btnFetch, setGbc(gbc, 2, row++)); // fetch button inline
+        panel.add(btnFetch, setGbc(gbc, 2, row++));
 
-        // Security Question
+       
         panel.add(new JLabel("Security Question:"), setGbc(gbc, 0, row));
         lblSecurityQuestion = new JLabel(" ");
         lblSecurityQuestion.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         lblSecurityQuestion.setForeground(primaryDark);
         panel.add(lblSecurityQuestion, setGbc(gbc, 1, row++, 2));
 
-        // Answer
+      
         panel.add(new JLabel("Answer:"), setGbc(gbc, 0, row));
         txtAnswer = new JTextField(15);
         styleTextField(txtAnswer);
         panel.add(txtAnswer, setGbc(gbc, 1, row++, 2));
 
-        // New Password
+       
         panel.add(new JLabel("New Password:"), setGbc(gbc, 0, row));
         txtNewPassword = new JPasswordField(15);
         styleTextField(txtNewPassword);
         panel.add(txtNewPassword, setGbc(gbc, 1, row++, 2));
 
-        // Confirm Password
+       
         panel.add(new JLabel("Confirm Password:"), setGbc(gbc, 0, row));
         txtConfirmPassword = new JPasswordField(15);
         styleTextField(txtConfirmPassword);
         panel.add(txtConfirmPassword, setGbc(gbc, 1, row++, 2));
 
-        // Buttons
+      
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         btnPanel.setBackground(bgColor);
         btnReset = new JButton("Reset Password");
@@ -93,7 +93,7 @@ public class ResetPassword extends JPanel {
 
         add(panel, BorderLayout.CENTER);
 
-        // Actions
+       
         btnFetch.addActionListener(e -> fetchSecurityQuestion());
         btnReset.addActionListener(e -> resetPassword());
         btnBack.addActionListener(e -> {
@@ -154,7 +154,7 @@ public class ResetPassword extends JPanel {
                 String correctAnswer = rs.getString("security_answer");
                 String currentPassword = rs.getString("password");
 
-                // ✅ CASE-SENSITIVE check
+               
                 if (answer.equals(correctAnswer)) {
                     if (newPass.equals(currentPassword)) {
                         JOptionPane.showMessageDialog(this, "Password must be new!");
@@ -236,3 +236,4 @@ public class ResetPassword extends JPanel {
         });
     }
 }
+
