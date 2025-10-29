@@ -6,7 +6,7 @@ import java.sql.*;
 public class Login extends JPanel {
     private JTextField txtUser;
     private JPasswordField txtPass;
-    private MainFrame main;  // Reference the main frame for navigation
+    private MainFrame main;  
 
     public Login(MainFrame main) {
         this.main = main;
@@ -22,7 +22,7 @@ public class Login extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.WEST;
 
-        // =============== TITLE ===================
+        
         gbc.gridy = 0;
         gbc.gridx = 0;
         gbc.gridwidth = 2;
@@ -38,7 +38,7 @@ public class Login extends JPanel {
         gbc.anchor = GridBagConstraints.EAST;
         gbc.insets = new Insets(6, 6, 6, 6);
 
-        // =============== USERNAME ===================
+        
         gbc.gridy = 1;
         gbc.gridx = 0;
         JLabel lblUser = new JLabel("Admission No:");
@@ -51,7 +51,7 @@ public class Login extends JPanel {
         styleTextField(txtUser);
         add(txtUser, gbc);
 
-        // =============== PASSWORD ===================
+        
         gbc.gridy = 2;
         gbc.gridx = 0;
         gbc.anchor = GridBagConstraints.EAST;
@@ -65,7 +65,7 @@ public class Login extends JPanel {
         styleTextField(txtPass);
         add(txtPass, gbc);
 
-        // =============== BUTTONS ===================
+        
         gbc.gridy = 3;
         gbc.gridx = 0;
         gbc.gridwidth = 2;
@@ -84,7 +84,7 @@ public class Login extends JPanel {
         buttonPanel.add(btnBack);
         add(buttonPanel, gbc);
 
-        // =============== FORGOT PASSWORD ===================
+        
         gbc.gridy = 4;
         gbc.gridx = 0;
         gbc.gridwidth = 2;
@@ -117,7 +117,7 @@ public class Login extends JPanel {
         forgotPanel.add(lblForgot);
         add(forgotPanel, gbc);
 
-        // =============== ACTIONS ===================
+        
         btnLogin.addActionListener(e -> doLogin());
 
         btnBack.addActionListener(e -> {
@@ -221,4 +221,5 @@ public class Login extends JPanel {
         });
     }
 }
+
 
