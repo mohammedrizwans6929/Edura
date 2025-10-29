@@ -7,7 +7,7 @@ public class StudentOptionPage extends JPanel {
     public StudentOptionPage(MainFrame main) {
         this.main = main;
 
-        // 🎨 Theme colors
+        
         Color bgColor = new Color(245, 247, 250);
         Color primary = new Color(52, 152, 219);
         Color primaryDark = new Color(41, 128, 185);
@@ -21,24 +21,20 @@ public class StudentOptionPage extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.CENTER;
 
-        // 🏷️ Title (Spans 2 columns)
+      
         JLabel lblTitle = new JLabel("Student Portal", SwingConstants.CENTER);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 26));
         lblTitle.setForeground(primary);
 
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.gridwidth = 2; // Span two columns
+        gbc.gridwidth = 2; 
         add(lblTitle, gbc);
 
-        // 🪄 Subtitle (Spans 2 columns)
        
-
-      
-        // Reset gridwidth for buttons
         gbc.gridwidth = 1;
 
-        // 🎓 Main Buttons - side-by-side
+     
         JButton btnLogin = new JButton("Login");
         JButton btnSignup = new JButton("Create Profile");
         styleMainButton(btnLogin, primary, primaryDark);
@@ -48,31 +44,31 @@ public class StudentOptionPage extends JPanel {
         btnLogin.setPreferredSize(mainBtnSize);
         btnSignup.setPreferredSize(mainBtnSize);
 
-        // Login Button (Left)
+        
         gbc.gridy = 2;
         gbc.gridx = 0;
         add(btnLogin, gbc);
 
-        // Signup Button (Right)
+        
         gbc.gridx = 1;
         add(btnSignup, gbc);
 
-        // 🔙 Back Button - Styled as a smaller primary button
+        
         JButton btnBack = new JButton("← Back");
         
-        // *** KEY CHANGE: Use the new styleSmallButton method ***
+        
         styleSmallButton(btnBack, primary, primaryDark); 
 
         gbc.gridy = 3;
         gbc.gridx = 0;
-        gbc.gridwidth = 2; // Span two columns to center
-        gbc.insets = new Insets(30, 15, 15, 15); // Add extra top padding for separation
+        gbc.gridwidth = 2; 
+        gbc.insets = new Insets(30, 15, 15, 15);
         add(btnBack, gbc);
         
-        // Reset insets for actions below if any
+    
         gbc.insets = new Insets(15, 15, 15, 15);
 
-        // ⚙️ Actions
+        
         btnLogin.addActionListener(e -> main.showPage("login"));
         btnSignup.addActionListener(e -> main.showPage("signup"));
         btnBack.addActionListener(e -> main.showPage("welcome"));
@@ -93,17 +89,15 @@ public class StudentOptionPage extends JPanel {
         });
     }
 
-    /**
-     * Styles the button using the primary color but with a smaller size and font.
-     */
+  
     private void styleSmallButton(JButton b, Color primary, Color primaryDark) {
         b.setBackground(primary);
         b.setForeground(Color.WHITE);
-        b.setFont(new Font("Segoe UI", Font.BOLD, 13)); // Smaller font
+        b.setFont(new Font("Segoe UI", Font.BOLD, 13));
         b.setFocusPainted(false);
         b.setBorderPainted(false);
         b.setOpaque(true);
-        // Smaller size
+        
         b.setPreferredSize(new Dimension(120, 32)); 
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         b.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
@@ -115,3 +109,4 @@ public class StudentOptionPage extends JPanel {
     }
 
 }
+
