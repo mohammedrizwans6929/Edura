@@ -2,7 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
 import java.net.URL; 
-import java.util.Map; // Import added for clarity
+import java.util.Map; 
 
 public class MainFrame extends JFrame {
     
@@ -10,32 +10,32 @@ public class MainFrame extends JFrame {
     private JPanel cardPanel;
     private HashMap<String, JPanel> pages;
 
-    // Keep references to student-specific pages
-    private AvailableCoursesPage availableCoursesPage; // <-- This is the field being accessed
+    
+    private AvailableCoursesPage availableCoursesPage;
     private MyCoursesPage myCoursesPage;
     private MyCertificatesPage myCertificatesPage;
 
-    // Keep references to admin-specific pages
+  
     private CourseAttendancePage courseAttendancePage;
 
-    private String currentAdmissionNo;  // Logged-in student
+    private String currentAdmissionNo; 
 
     public MainFrame() {
         setTitle("Edura");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        // Set initial size
+       
         setSize(800, 600); 
         setLocationRelativeTo(null);
         
-        // --- Setup Frame Icon ---
+      
         try {
-            // Note: Updated path in the original code to "/appicon1.png"
+            
             URL iconURL = getClass().getResource("/appicon1.png"); 
             if (iconURL != null) {
                 Image icon = Toolkit.getDefaultToolkit().getImage(iconURL);
                 setIconImage(icon);
             } else {
-                // Correcting the warning message for consistency
+               
                 System.err.println("Warning: Icon file '/appicon1.png' not found on classpath. Frame icon not set.");
             }
         } catch (Exception e) {
@@ -48,7 +48,7 @@ public class MainFrame extends JFrame {
         cardPanel = new JPanel(cardLayout);
         pages = new HashMap<>();
         
-        // Initial pages and setup logic
+     
         addPage("welcome", new WelcomePage(this));
         addPage("studentoptions", new StudentOptionPage(this)); 
         addPage("login", new Login(this));
@@ -56,28 +56,28 @@ public class MainFrame extends JFrame {
         addPage("adminlogin", new AdminLogin(this));
         addPage("reset", new ResetPassword(this));
         
-        // Admin Pages Initialization
+      
         addPage("managecourses", new ManageCoursesPage(this)); 
         AdminPage adminPage = new AdminPage(this);
         addPage("admin", adminPage);
-        // Note: 'managestudents' likely should be a different page than ManageCoursesPage
+      
         addPage("managestudents", new ManageCoursesPage(this)); 
         addPage("viewstudents", new ViewStudentsByCoursePage(this));
 
         AddCoursePage addCoursePage = new AddCoursePage(this);
         addPage("addcourse", addCoursePage);
         
-        // Initialize Course Attendance Page
+       
         courseAttendancePage = new CourseAttendancePage(this);
         addPage("courseattendance", courseAttendancePage);
 
         add(cardPanel);
         showPage("welcome");
         
-        // Set the frame state to maximized (full screen)
+      
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         
-        // Make frame visible
+       
         setVisible(true); 
     }
     
@@ -86,9 +86,7 @@ public class MainFrame extends JFrame {
         cardPanel.add(page, name);
     }
 
-    /**
-     * Shows the requested page and performs cleanup actions if necessary.
-     */
+  
     public void showPage(String name) {
         if ("signup".equals(name)) {
             JPanel page = pages.get(name);
@@ -100,8 +98,7 @@ public class MainFrame extends JFrame {
         cardLayout.show(cardPanel, name);
     }
 
-    // --- Dynamic Navigation Methods (omitted for brevity) ---
-
+ 
     public void showProfilePage(String admissionNo) {
         ProfilePage profilePage = new ProfilePage(this, admissionNo);
         addPage("profilePage_" + admissionNo, profilePage);
@@ -143,8 +140,7 @@ public class MainFrame extends JFrame {
     public void setCurrentStudent(String admissionNo) {
         this.currentAdmissionNo = admissionNo;
 
-        // Note: Creating these pages here ensures they are initialized once per login
-        // and have access to the current student's admission number.
+      
         if (availableCoursesPage == null) {
             availableCoursesPage = new AvailableCoursesPage(this, currentAdmissionNo);
             addPage("availablecourses", availableCoursesPage);
@@ -161,34 +157,30 @@ public class MainFrame extends JFrame {
         }
     }
     
-    // Note: showCourseDetailsPage needs cleanup logic (similar to showEditCoursePage)
+  
     public void showCourseDetailsPage(String courseId, String studentAdmissionNo) {
-        String pageName = "coursedetails_" + courseId; // Use a unique name tied to the course ID
+        String pageName = "coursedetails_" + courseId;
         
-        // Remove old instance if it exists before creating a new one
+       
         if (pages.containsKey(pageName)) {
             cardPanel.remove(pages.get(pageName));
             pages.remove(pageName);
         }
         
         CourseDetailsPage courseDetails = new CourseDetailsPage(this, courseId, studentAdmissionNo);
-        addPage(pageName, courseDetails); // Use the unique name here
-        showPage(pageName); // Use the unique name to show the correct card
+        addPage(pageName, courseDetails); 
+        showPage(pageName);
     }
     
     public JPanel getPage(String name) {
         return pages.get(name);
     }
     
-    // 🔑 THE REQUIRED GETTER METHOD TO FIX THE COMPILATION ERROR 
-    /**
-     * Provides access to the persistent AvailableCoursesPage instance, 
-     * allowing the CourseDetailsPage to call refreshCourses() after registration.
-     */
+ 
     public AvailableCoursesPage getAvailableCoursesPage() {
         return availableCoursesPage;
     }
-    // 🔑 END FIX
+   
 
     public void showAvailableCoursesPage() {
         if (availableCoursesPage != null) {
@@ -211,11 +203,12 @@ public class MainFrame extends JFrame {
         }
     }
 
-    // --- Main Method (Direct Launch) ---
+   
     
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             new MainFrame().finishSetup();
         });
     }
+
 }
