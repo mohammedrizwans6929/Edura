@@ -35,7 +35,7 @@ public class WelcomePage extends JPanel {
         gbc.gridx = 1;
         add(btnAdmin, gbc);
 
-        // Actions
+        
         btnStudent.addActionListener(e -> main.showPage("studentoptions"));
         btnAdmin.addActionListener(e -> main.showPage("adminlogin"));
     }
@@ -56,4 +56,5 @@ public class WelcomePage extends JPanel {
         });
     }
 }
+
 
