@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.regex.Pattern; 
 import java.awt.Desktop; 
 
-// Apache PDFBox Imports (Requires Library in Classpath!)
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -35,7 +35,7 @@ public class MyCertificatesPage extends JPanel {
     }
 
     private void initUI() {
-        // ===== Header =====
+      
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(primary);
         header.setPreferredSize(new Dimension(800, 60));
@@ -48,7 +48,7 @@ public class MyCertificatesPage extends JPanel {
         header.add(lblTitle, BorderLayout.WEST);
         add(header, BorderLayout.NORTH);
 
-        // ===== List Panel (Center Content) =====
+     
         listPanel = new JPanel();
         listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
         listPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
@@ -59,7 +59,7 @@ public class MyCertificatesPage extends JPanel {
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         add(scrollPane, BorderLayout.CENTER);
 
-        // ===== Footer (Back Button) =====
+       
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 15));
         footer.setBackground(new Color(245, 247, 250));
 
@@ -71,16 +71,14 @@ public class MyCertificatesPage extends JPanel {
         add(footer, BorderLayout.SOUTH);
     }
 
-    /**
-     * Fetches courses eligible for certification by checking the 'course_results' table.
-     */
+  
     public void loadCertificates() {
         listPanel.removeAll();
         boolean found = false;
 
-        try (Connection conn = DBConnection.getConnection(); // Assumes DBConnection is available
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement pst = conn.prepareStatement(
-                     // SQL: Joins with course_results to find 'Passed'/'Completed' courses
+                   
                      "SELECT c.course_id, c.course_name, r.completion_date " +
                              "FROM courses c " +
                              "JOIN course_results r ON c.course_id = r.course_id " +
@@ -97,7 +95,7 @@ public class MyCertificatesPage extends JPanel {
                 String courseId = rs.getString("course_id");
                 String courseName = rs.getString("course_name");
                 
-                // Get completion date directly from results table
+               
                 Date completionDate = rs.getDate("completion_date"); 
 
                 JPanel certificateCard = createCertificateCard(courseId, courseName, dateFormat.format(completionDate));
@@ -122,9 +120,7 @@ public class MyCertificatesPage extends JPanel {
         listPanel.repaint();
     }
 
-    /**
-     * Creates a card for an individual certificate with a download button.
-     */
+    
     private JPanel createCertificateCard(String courseId, String courseName, String dateStr) {
         JPanel card = new JPanel(new BorderLayout(20, 0));
         card.setMaximumSize(new Dimension(750, 80));
@@ -134,7 +130,7 @@ public class MyCertificatesPage extends JPanel {
         ));
         card.setBackground(Color.WHITE);
 
-        // --- Info Panel ---
+    
         JPanel infoPanel = new JPanel(new GridLayout(2, 1));
         infoPanel.setOpaque(false);
 
@@ -149,7 +145,7 @@ public class MyCertificatesPage extends JPanel {
         infoPanel.add(lblDate);
         card.add(infoPanel, BorderLayout.CENTER);
 
-        // --- Action Panel ---
+     
         JButton btnDownload = new JButton("⬇ Download PDF");
         styleButton(btnDownload, success, successDark, new Dimension(160, 40));
 
@@ -163,14 +159,12 @@ public class MyCertificatesPage extends JPanel {
         return card;
     }
 
-    /**
-     * Generates and downloads the certificate as a PDF using Apache PDFBox.
-     */
+   
     private void downloadCertificate(String courseId, String courseName) {
         String studentFullName = "";
         String completionDateStr = "";
 
-        // 1. Fetch Student Full Name and Completion Date from students and course_results
+      
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pst = conn.prepareStatement(
                  "SELECT s.full_name, r.completion_date " +
@@ -196,22 +190,18 @@ public class MyCertificatesPage extends JPanel {
             return;
         }
 
-        // 2. Define File Path and Create Directory 
-        
-        // Dynamic Path Construction 
         String dirPath = "certificates" + File.separator + 
                          "Certificate_" + courseId + File.separator + 
                          admissionNo + File.separator + 
-                         courseName.toLowerCase().replaceAll(Pattern.quote(" "), "_").replaceAll("[^a-z0-9_]", ""); // Clean folder name
-        
-        // Create a unique filename based on student name and course ID.
+                         courseName.toLowerCase().replaceAll(Pattern.quote(" "), "_").replaceAll("[^a-z0-9_]", ""); 
+       
         String cleanedName = studentFullName.replaceAll("[^a-zA-Z0-9\\s]", "").replaceAll("\\s+", "_");
         String uniqueFileName = cleanedName + "_Cert_" + courseId + ".pdf";
         
         File outputDir = new File(dirPath);
         File outputFile = new File(outputDir, uniqueFileName); 
 
-        // Create the entire directory structure if it does not exist
+       
         if (!outputDir.exists()) {
             if (!outputDir.mkdirs()) {
                 JOptionPane.showMessageDialog(this, "Failed to create download directory: " + outputDir.getAbsolutePath(), "File Error", JOptionPane.ERROR_MESSAGE);
@@ -219,10 +209,10 @@ public class MyCertificatesPage extends JPanel {
             }
         }
         
-        // 3. PDF Generation using Apache PDFBox
+       
         try (PDDocument document = new PDDocument()) {
             
-            // Landscape Mode (Fix for PDFBox 3.x)
+          
             PDRectangle landscapeRect = new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth());
             PDPage page = new PDPage(landscapeRect);
             document.addPage(page);
@@ -230,13 +220,13 @@ public class MyCertificatesPage extends JPanel {
             float width = page.getMediaBox().getWidth(); 
             float height = page.getMediaBox().getHeight(); 
 
-            // Calculate center points for the new landscape layout
+           
             float centerX = width / 2f;
             float marginX = 50f;
             float marginY = 50f;
             float borderInset = 20f; 
 
-            // Set up Fonts
+            
             PDType1Font FONT_TITLE = new PDType1Font(FontName.HELVETICA_BOLD);
             PDType1Font FONT_HEADER = new PDType1Font(FontName.HELVETICA_BOLD_OBLIQUE);
             PDType1Font FONT_BODY = new PDType1Font(FontName.HELVETICA);
@@ -244,44 +234,40 @@ public class MyCertificatesPage extends JPanel {
             
             try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
                 
-                // ----------------------------------------------------
-                // 3.1 Template Layout
-                // ----------------------------------------------------
-
-                // Outer Border (Black)
+              
                 contentStream.setLineWidth(5);
                 contentStream.setStrokingColor(Color.BLACK);
                 contentStream.addRect(marginX, marginY, width - 2 * marginX, height - 2 * marginY);
                 contentStream.stroke();
 
-                // Inner Border/Text Box (Gold color approximation)
+               
                 contentStream.setLineWidth(1);
                 contentStream.setStrokingColor(new Color(205, 175, 80)); 
                 contentStream.addRect(marginX + borderInset, marginY + borderInset, 
                                       width - 2 * (marginX + borderInset), height - 2 * (marginY + borderInset));
                 contentStream.stroke();
                 
-                // Text coordinates 
+               
                 float currentY = height - 100f; 
 
-                // Main Title: CERTIFICATE OF PARTICIPATION
+              
                 TextAlignment.drawCenteredText(contentStream, FONT_TITLE, 30f, "CERTIFICATE OF PARTICIPATION", currentY, centerX);
                 currentY -= 50f;
                 
-                // Award Line
+               
                 TextAlignment.drawCenteredText(contentStream, FONT_BODY, 18f, "THIS CERTIFICATE IS AWARDED TO", currentY, centerX);
                 currentY -= 50f;
 
-                // Student Name
+               
                 TextAlignment.drawCenteredText(contentStream, FONT_NAME, 45f, studentFullName.toUpperCase(), currentY, centerX);
                 currentY -= 60f;
                 
-                // Participation Text
+              
                 String participationText1 = "for actively participating in the event,";
                 String participationText2 = "\"" + courseName.toUpperCase() + "\", organized by";
-                // --- EDITED TEXT: REPLACED HARDCODED ORGANIZATION NAME WITH PLACEHOLDER ---
+               
                 String participationText3 = "ORGANIZING BODY"; 
-                // --------------------------------------------------------------------------
+              
 
                 TextAlignment.drawCenteredText(contentStream, FONT_BODY, 14f, participationText1, currentY, centerX);
                 currentY -= 20f;
@@ -290,28 +276,27 @@ public class MyCertificatesPage extends JPanel {
                 TextAlignment.drawCenteredText(contentStream, FONT_BODY, 14f, participationText3, currentY, centerX);
                 currentY -= 20f;
                 
-                // Date
+               
                 String dateLine = "on " + completionDateStr + ".";
                 TextAlignment.drawCenteredText(contentStream, FONT_BODY, 14f, dateLine, currentY, centerX);
-                
-                // Signature Block (Bottom)
+             
                 float signatureY = 100f;
                 float signatureLineLength = 200f;
                 float leftSigX = centerX - 200f;
                 float rightSigX = centerX + 200f;
 
-                // Signature 1 Line
+              
                 contentStream.setLineWidth(1);
                 contentStream.setStrokingColor(Color.BLACK);
                 contentStream.moveTo(leftSigX - signatureLineLength/2, signatureY); 
                 contentStream.lineTo(leftSigX + signatureLineLength/2, signatureY); 
                 contentStream.stroke();
-                // --- EDITED TEXT: REPLACED HARDCODED NAMES WITH PLACEHOLDERS ---
+               
                 TextAlignment.drawCenteredText(contentStream, FONT_BODY, 12f, "TITLE 1", signatureY - 15f, leftSigX);
                 TextAlignment.drawCenteredText(contentStream, FONT_BODY, 12f, "AUTHORIZED SIGNATORY 1", signatureY - 30f, leftSigX);
 
 
-                // Signature 2 Line
+               
                 contentStream.moveTo(rightSigX - signatureLineLength/2, signatureY); 
                 contentStream.lineTo(rightSigX + signatureLineLength/2, signatureY); 
                 contentStream.stroke();
@@ -323,7 +308,7 @@ public class MyCertificatesPage extends JPanel {
 
             document.save(outputFile);
             
-            // Automatic File Opening 
+           
             boolean openedSuccessfully = false;
             if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
                 try {
@@ -334,7 +319,7 @@ public class MyCertificatesPage extends JPanel {
                 }
             }
             
-            // Show a simple confirmation message
+           
             String successMessage = openedSuccessfully 
                 ? "✅ Certificate generated successfully and opened in your default viewer."
                 : "✅ Certificate generated successfully.\n\nFile location: " + outputFile.getAbsolutePath();
@@ -347,13 +332,7 @@ public class MyCertificatesPage extends JPanel {
         }
     }
 
-    // -------------------------------------------------------------
-    // UTILITY CLASS FOR TEXT ALIGNMENT IN PDFBox
-    // -------------------------------------------------------------
-
-    /**
-     * Helper methods for aligning text on the PDPageContentStream.
-     */
+ 
     private static class TextAlignment {
         public static void drawCenteredText(PDPageContentStream contentStream, PDType1Font font, float fontSize, String text, float y, float centerX) throws IOException {
             contentStream.beginText();
@@ -382,9 +361,7 @@ public class MyCertificatesPage extends JPanel {
         }
     }
     
-    // -------------------------------------------------------------
-    // STYLING UTILITY
-    // -------------------------------------------------------------
+    
     
     private void styleButton(JButton b, Color bg, Color hover, Dimension size) {
         b.setBackground(bg);
@@ -400,4 +377,5 @@ public class MyCertificatesPage extends JPanel {
             public void mouseExited(MouseEvent e) { b.setBackground(bg); }
         });
     }
+
 }
