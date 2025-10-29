@@ -113,4 +113,5 @@ public class StudentOptionPage extends JPanel {
             else b.setBackground(primary);
         });
     }
+
 }
