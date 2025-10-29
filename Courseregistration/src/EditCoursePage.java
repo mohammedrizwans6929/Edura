@@ -15,18 +15,16 @@ public class EditCoursePage extends JPanel {
     private JButton btnChooseImage, btnSave, btnBack;
     private File selectedImageFile;
 
-    /**
-     * 🔴 UPDATED CONSTRUCTOR: Added parentPage argument as required by MainFrame.
-     */
+   
     public EditCoursePage(MainFrame main, String courseId, ManageCoursesPage parentPage) {
         this.main = main;
         this.courseId = courseId;
-        this.parentPage = parentPage; // 🔴 INITIALIZED: Store the parent reference
+        this.parentPage = parentPage; 
 
         setLayout(new BorderLayout());
         setBackground(new Color(245, 247, 250));
 
-        JLabel lblTitle = new JLabel("Edit Course: " + courseId, SwingConstants.CENTER); // Include ID in title
+        JLabel lblTitle = new JLabel("Edit Course: " + courseId, SwingConstants.CENTER); 
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitle.setForeground(new Color(52, 152, 219));
         lblTitle.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
@@ -51,7 +49,7 @@ public class EditCoursePage extends JPanel {
 
         int y = 0;
 
-        // --- Course ID ---
+       
         gbc.gridx = 0; gbc.gridy = y;
         formPanel.add(new JLabel("Course ID:"), gbc);
         txtCourseId = new JTextField();
@@ -61,7 +59,7 @@ public class EditCoursePage extends JPanel {
         formPanel.add(txtCourseId, gbc);
         y++;
 
-        // --- Course Name ---
+        
         gbc.gridx = 0; gbc.gridy = y;
         formPanel.add(new JLabel("Course Name:"), gbc);
         txtCourseName = new JTextField();
@@ -70,7 +68,6 @@ public class EditCoursePage extends JPanel {
         formPanel.add(txtCourseName, gbc);
         y++;
 
-        // --- Description ---
         gbc.gridx = 0; gbc.gridy = y;
         formPanel.add(new JLabel("Description:"), gbc);
         txtDescription = new JTextArea(4, 20);
@@ -85,9 +82,8 @@ public class EditCoursePage extends JPanel {
         formPanel.add(new JScrollPane(txtDescription), gbc);
         y++;
 
-        // --- Date ---
         gbc.gridx = 0; gbc.gridy = y;
-        formPanel.add(new JLabel("Date (YYYY-MM-DD):"), gbc); // Added format hint
+        formPanel.add(new JLabel("Date (YYYY-MM-DD):"), gbc); 
         txtDate = new JTextField();
         styleField(txtDate, fieldFont, fieldSize);
         gbc.gridx = 1;
@@ -300,4 +296,5 @@ public class EditCoursePage extends JPanel {
         }
     }
 }
+
 
