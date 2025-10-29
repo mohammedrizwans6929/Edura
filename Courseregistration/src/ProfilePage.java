@@ -165,3 +165,4 @@ public class ProfilePage extends JPanel {
         });
     }
 }
+
