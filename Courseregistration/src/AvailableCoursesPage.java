@@ -5,8 +5,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.io.File;
-import java.util.Calendar; // Required for date/time comparison
-
+import java.util.Calendar; 
 public class AvailableCoursesPage extends JPanel {
     private MainFrame main;
     private String studentAdmissionNo;
@@ -17,8 +16,8 @@ public class AvailableCoursesPage extends JPanel {
     
     private Color primary = new Color(52, 152, 219);
     private Color primaryDark = new Color(41, 128, 185);
-    private final Color SUCCESS_GREEN = new Color(39, 174, 96); // For COMPLETED status
-    private final Color DANGER_RED = new Color(231, 76, 60);    // For ABSENT status
+    private final Color SUCCESS_GREEN = new Color(39, 174, 96); 
+    private final Color DANGER_RED = new Color(231, 76, 60);    
 
     public AvailableCoursesPage(MainFrame main, String studentAdmissionNo) {
         this.main = main;
@@ -28,7 +27,7 @@ public class AvailableCoursesPage extends JPanel {
     }
 
     private void initUI() {
-        // ===== Header =====
+       
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(primary);
         header.setPreferredSize(new Dimension(800, 60));
@@ -39,18 +38,18 @@ public class AvailableCoursesPage extends JPanel {
         header.add(lblTitle, BorderLayout.WEST);
         add(header, BorderLayout.NORTH);
 
-        // ===== Tabbed Pane Setup =====
+      
         tabbedPane = new JTabbedPane();
         tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 14));
         
-        // --- 1. Upcoming Courses Tab ---
+       
         upcomingCoursesPanel = createCardContainerPanel();
         JScrollPane upcomingScroll = new JScrollPane(upcomingCoursesPanel);
         upcomingScroll.getVerticalScrollBar().setUnitIncrement(16);
         upcomingScroll.setBorder(BorderFactory.createEmptyBorder());
         tabbedPane.addTab(" Upcoming Courses", upcomingScroll);
 
-        // --- 2. Completed Courses Tab ---
+       
         completedCoursesPanel = createCardContainerPanel();
         JScrollPane completedScroll = new JScrollPane(completedCoursesPanel);
         completedScroll.getVerticalScrollBar().setUnitIncrement(16);
@@ -59,7 +58,7 @@ public class AvailableCoursesPage extends JPanel {
         
         add(tabbedPane, BorderLayout.CENTER);
 
-        // ===== Footer (Back button) =====
+       
         JPanel footer = new JPanel();
         JButton btnBack = new JButton("Back to Dashboard");
 
@@ -72,7 +71,7 @@ public class AvailableCoursesPage extends JPanel {
         loadCourses();
     }
     
-    /** Creates a JPanel configured to hold stacked course cards. */
+  
     private JPanel createCardContainerPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -89,11 +88,10 @@ public class AvailableCoursesPage extends JPanel {
         upcomingCoursesPanel.removeAll();
         completedCoursesPanel.removeAll();
 
-        // Get current timestamp for comparison
+        
         long currentTimeMillis = System.currentTimeMillis(); 
 
-        // SQL to fetch ALL non-registered, non-deleted courses.
-        // It fetches any course that the student does NOT have an active registration for.
+        
         String sql = 
             "SELECT c.* FROM courses c " +
             "LEFT JOIN course_registrations cr ON c.course_id = cr.course_id " +
@@ -118,24 +116,23 @@ public class AvailableCoursesPage extends JPanel {
                     java.sql.Time time = rs.getTime("course_time");
                     String poster = rs.getString("poster");
 
-                    // CORE ROBUST SEPARATION LOGIC
+                   
                     Calendar courseCalendar = Calendar.getInstance();
                     courseCalendar.setTime(date); 
                     
-                    // Add the time component's milliseconds to the date's milliseconds
+                  
                     courseCalendar.setTimeInMillis(date.getTime() + time.getTime()); 
                     
-                    // Add 1 hour buffer (3600000 milliseconds) to define the course 'finish time'
+                  
                     long courseEndTimestamp = courseCalendar.getTimeInMillis() + 3600000;
                     
-                    // If the course's estimated end time is LATER than the current time, it's upcoming.
+                    
                     boolean isUpcoming = courseEndTimestamp > currentTimeMillis;
                     
-                    // Determine final status for the card display
+                   
                     String finalStatus = "PAST";
                     if (!isUpcoming) {
-                        // For past courses the student is NOT currently registered for, 
-                        // check if they were previously registered and attended.
+                        
                         finalStatus = getStudentCourseStatus(conn, courseId);
                     }
 
@@ -152,7 +149,7 @@ public class AvailableCoursesPage extends JPanel {
                     }
                 }
                 
-                // Add empty state messages and glue to keep content centered
+                
                 if (!foundUpcoming) {
                     addNoCourseMessage(upcomingCoursesPanel, "No upcoming courses available for registration.");
                 } else {
@@ -175,7 +172,7 @@ public class AvailableCoursesPage extends JPanel {
         completedCoursesPanel.revalidate();
         completedCoursesPanel.repaint();
         
-        // Ensure scroll position is reset to top for the currently visible tab
+       
         SwingUtilities.invokeLater(() -> {
             JScrollPane currentScroll = (JScrollPane) tabbedPane.getSelectedComponent();
             if (currentScroll != null) {
@@ -184,12 +181,9 @@ public class AvailableCoursesPage extends JPanel {
         });
     }
     
-    /**
-     * Checks if the student was previously registered for a course and what the outcome was.
-     * Statuses: "COMPLETED", "ABSENT", or "EXPIRED" (default, meaning no record found).
-     */
+   
     private String getStudentCourseStatus(Connection conn, String courseId) throws SQLException {
-        // First, check if the student was ever registered (cancelled or not).
+       
         String regSql = "SELECT COUNT(*) FROM course_registrations WHERE course_id = ? AND student_admission_no = ?";
         try (PreparedStatement regPst = conn.prepareStatement(regSql)) {
             regPst.setString(1, courseId);
@@ -197,14 +191,13 @@ public class AvailableCoursesPage extends JPanel {
             
             try (ResultSet regRs = regPst.executeQuery()) {
                 if (regRs.next() && regRs.getInt(1) == 0) {
-                    // Student was NEVER registered.
+                    
                     return "EXPIRED"; 
                 }
             }
         }
         
-        // Student was registered at some point (cancelled or currently inactive).
-        // Check for attendance.
+        
         String attSql = "SELECT COUNT(*) FROM attendance WHERE course_id = ? AND admission_no = ? AND status = 'Present'";
         try (PreparedStatement attPst = conn.prepareStatement(attSql)) {
             attPst.setString(1, courseId);
@@ -217,7 +210,7 @@ public class AvailableCoursesPage extends JPanel {
             }
         }
         
-        // If registered but no 'Present' record was found, mark as absent.
+        
         return "ABSENT";
     }
 
@@ -233,9 +226,7 @@ public class AvailableCoursesPage extends JPanel {
         panel.add(Box.createVerticalGlue());
     }
 
-    /**
-     * Creates a single course card. Registration is ONLY enabled for upcoming courses.
-     */
+   
     private JPanel createCourseCard(String courseId, String courseName, Date date, Time time, String mode, String poster, boolean isUpcoming, String status) {
         JPanel card = new JPanel(new BorderLayout(15, 0));
         card.setMaximumSize(new Dimension(750, 100)); 
@@ -243,7 +234,7 @@ public class AvailableCoursesPage extends JPanel {
         card.setBackground(Color.WHITE);
         card.setAlignmentX(Component.LEFT_ALIGNMENT);
         
-        // Cursor setup
+      
         if (isUpcoming) {
             card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         } else {
@@ -253,7 +244,7 @@ public class AvailableCoursesPage extends JPanel {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy");
         SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm a");
 
-        // --- Left: Poster Thumbnail (logic remains the same) ---
+      
         JLabel lblPoster = new JLabel();
         lblPoster.setPreferredSize(new Dimension(80, 80));
         lblPoster.setHorizontalAlignment(SwingConstants.CENTER);
@@ -275,7 +266,7 @@ public class AvailableCoursesPage extends JPanel {
          }
         card.add(lblPoster, BorderLayout.WEST);
 
-        // --- Center: Info (logic remains the same) ---
+       
         JPanel infoPanel = new JPanel(new GridLayout(3, 1));
         infoPanel.setOpaque(false);
         JLabel lblName = new JLabel("<html><b>" + courseName + "</b></html>");
@@ -286,17 +277,17 @@ public class AvailableCoursesPage extends JPanel {
         infoPanel.add(lblMode);
         card.add(infoPanel, BorderLayout.CENTER);
 
-        // --- Right: Status Indicator ---
+       
         JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 15));
         statusPanel.setOpaque(false);
 
         JLabel lblStatus = new JLabel(status);
         lblStatus.setFont(new Font("Segoe UI", Font.BOLD, 14));
         
-        // 🔑 Dynamic Status Coloring
+      
         if (isUpcoming) {
              lblStatus.setText("REGISTER");
-             lblStatus.setForeground(SUCCESS_GREEN); // Green for action
+             lblStatus.setForeground(SUCCESS_GREEN); 
         } else if (status.equals("COMPLETED")) {
              lblStatus.setForeground(SUCCESS_GREEN);
         } else if (status.equals("ABSENT")) {
@@ -314,7 +305,7 @@ public class AvailableCoursesPage extends JPanel {
 
         card.add(statusPanel, BorderLayout.EAST);
 
-        // Click handler: ONLY enable if it is an upcoming course
+     
         if (isUpcoming) {
             card.addMouseListener(new MouseAdapter() {
                 @Override
@@ -334,11 +325,12 @@ public class AvailableCoursesPage extends JPanel {
         b.setFocusPainted(false);
         b.setBorderPainted(false);
         b.setOpaque(true);
-        b.setPreferredSize(new Dimension(180, 35)); // Consistent button size
+        b.setPreferredSize(new Dimension(180, 35));
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         b.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) { if (b.isEnabled()) b.setBackground(hover);}
             public void mouseExited(MouseEvent e) { if (b.isEnabled()) b.setBackground(bg);}
         });
     }
+
 }
