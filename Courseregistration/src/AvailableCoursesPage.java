@@ -140,11 +140,11 @@ public class AvailableCoursesPage extends JPanel {
 
                     if (isUpcoming) {
                         upcomingCoursesPanel.add(card);
-                        upcomingCoursesPanel.add(Box.createVerticalStrut(10)); // Spacer
+                        upcomingCoursesPanel.add(Box.createVerticalStrut(10)); 
                         foundUpcoming = true;
                     } else {
                         completedCoursesPanel.add(card);
-                        completedCoursesPanel.add(Box.createVerticalStrut(10)); // Spacer
+                        completedCoursesPanel.add(Box.createVerticalStrut(10));
                         foundCompleted = true;
                     }
                 }
@@ -222,7 +222,7 @@ public class AvailableCoursesPage extends JPanel {
         
         panel.add(Box.createVerticalGlue());
         panel.add(noCourses);
-        panel.add(Box.createVerticalStrut(20)); // Padding
+        panel.add(Box.createVerticalStrut(20)); 
         panel.add(Box.createVerticalGlue());
     }
 
@@ -292,7 +292,7 @@ public class AvailableCoursesPage extends JPanel {
              lblStatus.setForeground(SUCCESS_GREEN);
         } else if (status.equals("ABSENT")) {
              lblStatus.setForeground(DANGER_RED);
-        } else { // PAST / EXPIRED
+        } else { 
              lblStatus.setForeground(Color.GRAY);
         }
         
@@ -334,3 +334,4 @@ public class AvailableCoursesPage extends JPanel {
     }
 
 }
+
